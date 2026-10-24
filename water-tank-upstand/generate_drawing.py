@@ -206,12 +206,6 @@ rect(lx, ly + 16, 10, 6, **AAC);  ax.text(lx + 13, ly + 19, "AAC block infill, 2
 rect(lx, ly + 6, 10, 6, **ROOF);  ax.text(lx + 13, ly + 9, "Existing roof slab (reference)", va="center", fontsize=6.5)
 ax.plot([lx, lx + 10], [ly + 1, ly + 1], color="red", lw=1.0); ax.text(lx + 13, ly + 1, "6 mm BRC mesh", va="center", fontsize=6.5)
 
-# ---------------- NOTES ----------------
-nx, ny = 225, 222
-ax.text(nx, ny + 2, "NOTES", fontsize=8, fontweight="bold")
-for i, n in enumerate(NOTES):
-    ax.text(nx, ny - 4 - i * 4.4, n, fontsize=5.8, va="top", family="monospace")
-
 # ---------------- BORDER + TITLE BLOCK ----------------
 rect(8, 8, 404, 281, facecolor="none", edgecolor="black", lw=1.2)
 tb_x, tb_y, tb_w, tb_h = 262, 8, 150, 36
@@ -333,12 +327,7 @@ dh(BX, BX + W, BY - ROOF_T - 700)
 dv(BY, BY + RIB_H, BX + W + 300); dv(BY + RIB_H, BY + RIB_H + SLAB_T, BX + W + 300); dv(BY, BY + RIB_H + SLAB_T, BX + W + 600)
 dtext(BX + W / 2, BY + RIB_H + SLAB_T + 450, "SECTION B-B", 150, layer="TITLE")
 
-# NOTES
-NX, NY = L + 2500, 3200
-dtext(NX, NY, "NOTES", 120, TextEntityAlignment.MIDDLE_LEFT, "TITLE")
-for i, n in enumerate(NOTES):
-    dtext(NX, NY - 200 - i * 170, n, 70, TextEntityAlignment.MIDDLE_LEFT)
-dtext(NX, NY + 600, "WATER TANK UPSTAND ON ROOF - PLAN & SECTIONS   |   UNITS: mm   |   DWG WT-UPS-01 REV 0   |   2026-10-24", 100, TextEntityAlignment.MIDDLE_LEFT, "TITLE")
+dtext(L + 2500, 3800, "WATER TANK UPSTAND ON ROOF - PLAN & SECTIONS   |   UNITS: mm   |   DWG WT-UPS-01 REV 0   |   2026-10-24", 100, TextEntityAlignment.MIDDLE_LEFT, "TITLE")
 
 doc.saveas(f"{OUT}/water-tank-upstand.dxf")
 print("dxf ok")
