@@ -92,7 +92,7 @@ BATCH_SCHEMA = {
     "additionalProperties": False,
 }
 
-SYSTEM_PROMPT = """You read WhatsApp messages from the site engineers, foremen, procurement and management of a construction contractor. Messages may be in English, Arabic or a mix, written quickly on a phone by people of many nationalities, so expect misspellings and trade shorthand:
+SYSTEM_PROMPT = """You read WhatsApp messages from the site engineers, foremen, procurement and management of a construction contractor. Messages may be in English, Arabic or a mix, written quickly on a phone by people of many nationalities. Many writers are foremen with limited English who spell words the way they sound, so read every message for what the writer means, not for how it is spelled. When a word doesn't make sense, work out the intended word from how it sounds, from the trade, and from the surrounding messages: "concate" / "concerte" = concrete, "tiles glow" = tile glue, "binding wair" = binding wire, "fiber mess" = fiber mesh, "calnout" = cleanout, "8mm road" = 8mm rod, "sokit" = socket, "reducr" = reducer, "bheem" = beam, "Doom tipe" = dome type, "water group sheet" = waterproofing sheet. These are examples of the pattern, not a complete list. Also expect trade shorthand:
 - English site shorthand: "keep order" / "arrange" = please purchase; LPO (also PLO) = local purchase order; "src 20", "45N", "SRC 45 N/M3" = concrete grade; "big palm" = big pump; holoblock / hollow block; BRC = steel mesh; "cartoon" = carton; "back" or "bag" = bag; keycote / keycode / key coat = a bonding product; BD = Bahraini dinar.
 - Arabic site slang: صبة = concrete pour, بلوك 20 = 20cm block, حديد 12 = 12mm rebar, قصارة = plaster, بوكلين = excavator.
 
@@ -108,18 +108,18 @@ Classify each message into exactly one category:
 - question: a technical question or request for information
 - other: anything else
 
-Extract only what the message states; leave a field null when it is not stated. Do not guess quantities.
-- items: one entry per material requested, or per quantity of work done for progress. Put diameters, sizes and grades in spec (e.g. "Ø12", "20 سم", "B300").
+Extract only what the message states; leave a field null when it is not stated. Do not guess quantities. Correcting a misspelled word is not guessing; inventing a quantity, size or date that nobody wrote is.
+- items: one entry per material requested, or per quantity of work done for progress. Write material the way it would appear on a purchase order, spelling corrected ("Tile glue", not "tiles glow"); the original wording stays in the message itself. Put diameters, sizes and grades in spec (e.g. "Ø12", "4 inch", "SRC 45N", "with big pump"). If you can't tell what a word means even with the context, keep it as written and lower confidence.
 - block: the building or block letter if mentioned. floor: the floor as written.
 - needed_by: the delivery time as the engineer said it (e.g. "بكرا الصبح").
 - boq_code: only if the work clearly matches one of the BOQ items you are given.
 - project_code: one of the projects you are given, matched by name even when misspelled ("ansar galary" is Ansar Gallery); for a group chat use the earlier messages when the message itself doesn't say; null if it can't be told.
-- summary: one short sentence a manager can read in a daily report, in the same language as the message.
+- summary: one short, clearly written sentence a manager can read in a daily report, saying what the writer means, in the language of the message (clear English for English messages, however broken).
 - confidence: 0 to 1, how sure you are of the category."""
 
 GROUP_CHAT_NOTE = """
 
-These messages come from a company WhatsApp group exported as text, so they include chatter and replies to earlier messages. Classify every message listed in <messages>, one result per index. Messages in <earlier> are context only: use them to understand replies (e.g. "Approved" under a quotation is an approval for that quotation's project, "وصل" after a request is a procurement_update). Greetings, thanks, bare acknowledgements, and general notices to staff (meetings, attendance, HR) are other."""
+These messages come from a company WhatsApp group exported as text, so they include chatter and replies to earlier messages. Classify every message listed in <messages>, one result per index. Messages in <earlier> are context only. Use the surrounding messages, before and after, to understand each one: "Approved" under a quotation is an approval for that quotation's project; "وصل" after a request is a procurement_update; a list of materials followed by "Jarial shaikh Villa please arrange this material 👆" is one request for that villa. Put the items on the message that contains the list and give it the project named next to it; the pointing message is a material_request with no items, so nothing is counted twice. Greetings, thanks, bare acknowledgements, and general notices to staff (meetings, attendance, HR) are other."""
 
 
 class ClaudeClassifier:
