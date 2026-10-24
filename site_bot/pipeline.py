@@ -172,9 +172,15 @@ def _question(conn, user, project, c, msg_id):
     return Outcome("انبعت سؤالك لمدير المشروع.", [(m["phone"], text) for m in managers])
 
 
+def _procurement_update(conn, user, project, c, msg_id):
+    # Kept on the message row; linking it to a specific request is for the procurement phase.
+    return Outcome("تسجّل تحديث المشتريات.")
+
+
 _HANDLERS = {
     "progress": _progress,
     "material_request": _material_request,
+    "procurement_update": _procurement_update,
     "issue": _issue,
     "safety": _issue,
     "labour": _labour,

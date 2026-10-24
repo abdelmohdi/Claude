@@ -5,11 +5,13 @@
     python -m site_bot report            # cron: 0 19 * * *
     python -m site_bot remind            # cron: 0 17 * * *
     python -m site_bot reprocess         # cron: */10 * * * *
+    python -m site_bot import-chat "WhatsApp Chat with المشتريات.txt"
 """
 import argparse
 import csv
 
-from . import config, db, pipeline, report
+from . import chat_export, config, db, pipeline, report
+from .classifier import ClaudeClassifier
 from .whatsapp import Sender
 
 
@@ -70,6 +72,10 @@ def main():
     p = sub.add_parser("report"); p.add_argument("--day", default=None)
     p = sub.add_parser("remind"); p.add_argument("--day", default=None)
     sub.add_parser("reprocess")
+    p = sub.add_parser("import-chat", help="classify an exported WhatsApp chat into a review spreadsheet")
+    p.add_argument("file"); p.add_argument("--out", default="مراجعة_المحادثة.xlsx")
+    p.add_argument("--since", help="only messages on or after this date, YYYY-MM-DD")
+    p.add_argument("--yes", action="store_true", help="don't ask before calling the AI")
     args = ap.parse_args()
 
     conn = db.connect(config.DB_PATH)
@@ -104,12 +110,40 @@ def main():
     elif args.cmd == "remind":
         for u in report.silent_engineers(conn, day):
             sender.send(u["phone"], "تذكير: ما وصلنا تحديث اليوم. ابعت شو انعمل بالموقع، ولو فويس قصير.")
+    elif args.cmd == "import-chat":
+        import_chat(conn, args)
     elif args.cmd == "reprocess":
         for phone, out in pipeline.reprocess_pending(conn, config.make_classifier()):
             if out.reply:
                 sender.send(phone, out.reply)
             for to, text in out.notify:
                 sender.send(to, text)
+
+
+def import_chat(conn, args):
+    with open(args.file, encoding="utf-8-sig") as f:
+        messages = chat_export.parse(f.read())
+    if args.since:
+        messages = [m for m in messages if m.sent_at.date().isoformat() >= args.since]
+    if not messages:
+        print("No messages found. Is this a WhatsApp 'Export chat' .txt file?")
+        return
+    n_ai, batches = sum(m.needs_ai for m in messages), chat_export.batches_needed(messages)
+    print(f"{len(messages)} messages from {messages[0].sent_at:%Y-%m-%d} to {messages[-1].sent_at:%Y-%m-%d}; "
+          f"{n_ai} need classifying ({batches} AI calls).")
+    classifier = config.make_classifier()
+    if isinstance(classifier, ClaudeClassifier):
+        # Rough: about 5 cents per call of 30 messages at low effort. Check the console for real spend.
+        print(f"Rough cost: about ${batches * 0.05:.2f} on {classifier.model}.")
+        if not args.yes and input("Continue? [y/N] ").strip().lower() != "y":
+            return
+    else:
+        print("Offline keyword classifier (no ANTHROPIC_API_KEY): results are only a rough preview.")
+    projects = [dict(p) for p in conn.execute("SELECT code, name FROM projects ORDER BY code")]
+    results = chat_export.classify(messages, classifier, projects,
+                                   progress=lambda done, total: print(f"  {done}/{total}", end="\r"))
+    chat_export.write_review(args.out, messages, results)
+    print(f"\nWrote {args.out}")
 
 
 if __name__ == "__main__":

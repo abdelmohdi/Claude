@@ -9,7 +9,11 @@ from dataclasses import dataclass, field
 
 import anthropic
 
-CATEGORIES = ["progress", "material_request", "issue", "safety", "labour", "question", "other"]
+CATEGORIES = ["progress", "material_request", "procurement_update", "issue", "safety", "labour",
+              "question", "other"]
+CATEGORY_AR = {"progress": "تقدّم عمل", "material_request": "طلب مواد",
+               "procurement_update": "تحديث مشتريات", "issue": "مشكلة أو تأخير", "safety": "سلامة",
+               "labour": "عمالة ومعدات", "question": "استفسار", "other": "أخرى"}
 
 
 @dataclass
@@ -71,11 +75,29 @@ SCHEMA = {
     "additionalProperties": False,
 }
 
+BATCH_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "results": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"index": {"type": "integer"}, **SCHEMA["properties"]},
+                "required": ["index", *SCHEMA["required"]],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["results"],
+    "additionalProperties": False,
+}
+
 SYSTEM_PROMPT = """You read WhatsApp messages that site engineers at a construction contractor send to the company's bot. Messages are in Arabic, usually Levantine dialect, often mixed with English terms and site slang (صبة = concrete pour, بلوك 20 = 20cm block, حديد 12 = 12mm rebar, قصارة = plaster, بوكلين = excavator).
 
 Classify each message into exactly one category:
 - progress: work done or started on site
-- material_request: the engineer needs materials or supplies delivered
+- material_request: someone needs materials or supplies delivered
+- procurement_update: a supplier quote or price, an order placed, a delivery on its way or arrived
 - issue: a delay, breakdown, missing delivery, or anything blocking work
 - safety: an injury, accident, near miss, or hazard. Choose this whenever safety is involved, even if the message also mentions other things.
 - labour: headcount of workers or equipment on site
@@ -90,6 +112,10 @@ Extract only what the message states; leave a field null when it is not stated. 
 - project_code: one of the engineer's projects you are given; null if the message doesn't say and they have more than one.
 - summary: one short Arabic sentence a manager can read in a daily report.
 - confidence: 0 to 1, how sure you are of the category."""
+
+GROUP_CHAT_NOTE = """
+
+These messages come from a company WhatsApp group exported as text, so they include chatter and replies to earlier messages. Classify every message listed in <messages>, one result per index. Messages in <earlier> are context only: use them to understand replies (e.g. "وصل" after a request is a procurement_update, "كم؟" refers to the item above). Greetings, thanks and bare acknowledgements are other."""
 
 
 class ClaudeClassifier:
@@ -128,6 +154,31 @@ class ClaudeClassifier:
         data = json.loads(next(b.text for b in response.content if b.type == "text"))
         return Classification(**data)
 
+    def classify_batch(self, messages: list[dict], earlier: list[dict], projects: list[dict]) -> list[Classification]:
+        """Classify a run of group-chat messages in one call. Each message: {index, sender, time, text}."""
+        projects_json = json.dumps([{"code": p["code"], "name": p["name"]} for p in projects], ensure_ascii=False)
+        fmt = lambda ms: "\n".join(f"[{m['index']}] {m['time']} {m['sender']}: {m['text']}" for m in ms)
+        response = self.client.beta.messages.create(
+            model=self.model,
+            max_tokens=16000,
+            betas=["server-side-fallback-2026-07-01"],
+            fallbacks="default",
+            output_config={"effort": "low", "format": {"type": "json_schema", "schema": BATCH_SCHEMA}},
+            system=SYSTEM_PROMPT + GROUP_CHAT_NOTE,
+            messages=[{
+                "role": "user",
+                "content": (f"<projects>{projects_json}</projects>\n<earlier>\n{fmt(earlier)}\n</earlier>\n"
+                            f"<messages>\n{fmt(messages)}\n</messages>"),
+            }],
+        )
+        by_index = {}
+        if response.stop_reason == "end_turn":
+            for r in json.loads(next(b.text for b in response.content if b.type == "text"))["results"]:
+                i = r.pop("index")
+                by_index[i] = Classification(**r)
+        # Anything the model skipped, refused or truncated goes to human review.
+        return [by_index.get(m["index"]) or Classification("other", 0.0, m["text"][:120]) for m in messages]
+
 
 # ---------------------------------------------------------------------------
 # Offline fallback
@@ -162,6 +213,8 @@ class KeywordClassifier:
             category = "material_request"
         elif _has(t, "ما وصل|ما اجا|تاخير|متاخر|مشكله|عطل|خربان|واقفه|واقف|توقف|مطر"):
             category = "issue"
+        elif _has(t, "وصل|وصلت|انطلب|طلبنا|عرض سعر|السعر|بالطريق"):
+            category = "procurement_update"
         elif _has(t, "صبينا|خلصنا|ركبنا|بلشنا|انجزنا|اشتغلنا|بنينا|قصرنا|دهنا|تم"):
             category = "progress"
         elif _has(t, "عامل|عمال|بوكلين|حفار|رافعه|كرين|معدات"):
@@ -192,3 +245,6 @@ class KeywordClassifier:
         if category == "labour" and (m := re.search(r"(\d+)\s*عامل", t)):
             c.workers = int(m.group(1))
         return c
+
+    def classify_batch(self, messages: list[dict], earlier: list[dict], projects: list[dict]) -> list[Classification]:
+        return [self.classify(m["text"], projects, []) for m in messages]
