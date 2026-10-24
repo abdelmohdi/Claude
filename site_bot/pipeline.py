@@ -181,6 +181,8 @@ _HANDLERS = {
     "progress": _progress,
     "material_request": _material_request,
     "procurement_update": _procurement_update,
+    "approval": _procurement_update,
+    "follow_up": _procurement_update,
     "issue": _issue,
     "safety": _issue,
     "labour": _labour,

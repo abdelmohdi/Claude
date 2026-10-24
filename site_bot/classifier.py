@@ -9,10 +9,10 @@ from dataclasses import dataclass, field
 
 import anthropic
 
-CATEGORIES = ["progress", "material_request", "procurement_update", "issue", "safety", "labour",
-              "question", "other"]
+CATEGORIES = ["progress", "material_request", "approval", "procurement_update", "follow_up", "issue",
+              "safety", "labour", "question", "other"]
 CATEGORY_AR = {"progress": "تقدّم عمل", "material_request": "طلب مواد",
-               "procurement_update": "تحديث مشتريات", "issue": "مشكلة أو تأخير", "safety": "سلامة",
+               "approval": "موافقة", "procurement_update": "تحديث مشتريات", "follow_up": "متابعة طلب", "issue": "مشكلة أو تأخير", "safety": "سلامة",
                "labour": "عمالة ومعدات", "question": "استفسار", "other": "أخرى"}
 
 
@@ -92,12 +92,16 @@ BATCH_SCHEMA = {
     "additionalProperties": False,
 }
 
-SYSTEM_PROMPT = """You read WhatsApp messages that site engineers at a construction contractor send to the company's bot. Messages are in Arabic, usually Levantine dialect, often mixed with English terms and site slang (صبة = concrete pour, بلوك 20 = 20cm block, حديد 12 = 12mm rebar, قصارة = plaster, بوكلين = excavator).
+SYSTEM_PROMPT = """You read WhatsApp messages from the site engineers, foremen, procurement and management of a construction contractor. Messages may be in English, Arabic or a mix, written quickly on a phone by people of many nationalities, so expect misspellings and trade shorthand:
+- English site shorthand: "keep order" / "arrange" = please purchase; LPO (also PLO) = local purchase order; "src 20", "45N", "SRC 45 N/M3" = concrete grade; "big palm" = big pump; holoblock / hollow block; BRC = steel mesh; "cartoon" = carton; "back" or "bag" = bag; keycote / keycode / key coat = a bonding product; BD = Bahraini dinar.
+- Arabic site slang: صبة = concrete pour, بلوك 20 = 20cm block, حديد 12 = 12mm rebar, قصارة = plaster, بوكلين = excavator.
 
 Classify each message into exactly one category:
 - progress: work done or started on site
-- material_request: someone needs materials or supplies delivered
-- procurement_update: a supplier quote or price, an order placed, a delivery on its way or arrived
+- material_request: someone asks for materials, supplies, equipment, a rental or a concrete booking (concrete bookings include grade, volume, date, time and pump: put grade and pump in spec, date and time in needed_by)
+- approval: a manager approves or rejects something, or someone asks for approval of a quotation, payment or purchase
+- procurement_update: a quotation or price, an LPO or order placed, a payment or cheque, a delivery on its way, arrived or collected, a rental stopped or returned
+- follow_up: chasing an earlier request ("any update?", "still not received", "reminding you", "urgent" on its own)
 - issue: a delay, breakdown, missing delivery, or anything blocking work
 - safety: an injury, accident, near miss, or hazard. Choose this whenever safety is involved, even if the message also mentions other things.
 - labour: headcount of workers or equipment on site
@@ -109,13 +113,13 @@ Extract only what the message states; leave a field null when it is not stated. 
 - block: the building or block letter if mentioned. floor: the floor as written.
 - needed_by: the delivery time as the engineer said it (e.g. "بكرا الصبح").
 - boq_code: only if the work clearly matches one of the BOQ items you are given.
-- project_code: one of the engineer's projects you are given; null if the message doesn't say and they have more than one.
-- summary: one short Arabic sentence a manager can read in a daily report.
+- project_code: one of the projects you are given, matched by name even when misspelled ("ansar galary" is Ansar Gallery); for a group chat use the earlier messages when the message itself doesn't say; null if it can't be told.
+- summary: one short sentence a manager can read in a daily report, in the same language as the message.
 - confidence: 0 to 1, how sure you are of the category."""
 
 GROUP_CHAT_NOTE = """
 
-These messages come from a company WhatsApp group exported as text, so they include chatter and replies to earlier messages. Classify every message listed in <messages>, one result per index. Messages in <earlier> are context only: use them to understand replies (e.g. "وصل" after a request is a procurement_update, "كم؟" refers to the item above). Greetings, thanks and bare acknowledgements are other."""
+These messages come from a company WhatsApp group exported as text, so they include chatter and replies to earlier messages. Classify every message listed in <messages>, one result per index. Messages in <earlier> are context only: use them to understand replies (e.g. "Approved" under a quotation is an approval for that quotation's project, "وصل" after a request is a procurement_update). Greetings, thanks, bare acknowledgements, and general notices to staff (meetings, attendance, HR) are other."""
 
 
 class ClaudeClassifier:
@@ -187,7 +191,7 @@ _ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
 
 def _norm(text: str) -> str:
-    text = text.translate(_ARABIC_DIGITS)
+    text = text.translate(_ARABIC_DIGITS).lower()
     return re.sub("[أإآ]", "ا", text).replace("ة", "ه").replace("ى", "ي")
 
 
@@ -205,15 +209,19 @@ _FLOORS = {"الارضي": "الأرضي", "الاول": "الأول", "التا
 class KeywordClassifier:
     def classify(self, text: str, projects: list[dict], boq: list[dict]) -> Classification:
         t = _norm(text)
-        if _has(t, "وقع|سقط|طاح|اصابه|انصاب|حادث|اسعاف|خطر|حريق"):
+        if _has(t, "وقع|سقط|طاح|اصابه|انصاب|حادث|اسعاف|خطر|حريق|accident|injur|unsafe|ppe"):
             category = "safety"
+        elif _has(t, "any update|still not|reminding|not received|not procured|متابعه|شو صار"):
+            category = "follow_up"
+        elif _has(t, "approved|approve|approval|موافق|موافقه"):
+            category = "approval"
         elif _has(t, "بدنا|بدي|نحتاج|محتاجين|اطلبوا|ابعتولنا|ارسلوا|ناقصنا|لازمنا") and (
             re.search(_MATERIALS, t) or re.search(r"\d", t)
-        ):
+        ) or _has(t, "keep order|arrange|book|i need|need"):
             category = "material_request"
-        elif _has(t, "ما وصل|ما اجا|تاخير|متاخر|مشكله|عطل|خربان|واقفه|واقف|توقف|مطر"):
+        elif _has(t, "ما وصل|ما اجا|تاخير|متاخر|مشكله|عطل|خربان|واقفه|واقف|توقف|مطر|not working|delay|problem"):
             category = "issue"
-        elif _has(t, "وصل|وصلت|انطلب|طلبنا|عرض سعر|السعر|بالطريق"):
+        elif _has(t, "وصل|وصلت|انطلب|طلبنا|عرض سعر|السعر|بالطريق|lpo|quotation|purchased|delivered|collected|cheque|chq|vat"):
             category = "procurement_update"
         elif _has(t, "صبينا|خلصنا|ركبنا|بلشنا|انجزنا|اشتغلنا|بنينا|قصرنا|دهنا|تم"):
             category = "progress"

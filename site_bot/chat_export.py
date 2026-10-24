@@ -19,13 +19,21 @@ _STAMP = (r"(\d{1,2})[./-](\d{1,2})[./-](\d{2,4}),?\s+(\d{1,2}):(\d{2})(?::\d{2}
           r"\s*([AaPp]\.?\s?[Mm]\.?|ص|م)?")
 _ANDROID = re.compile(rf"^{_STAMP}\s+-\s+(.*)$")       # 24/10/2026, 14:05 - Name: text
 _IOS = re.compile(rf"^\[{_STAMP}\]\s+(.*)$")            # [24/10/2026, 2:05:13 PM] Name: text
+# A media marker opens the message; whatever follows it is the caption (or just the file name).
 _MEDIA = re.compile(
-    r"^(<Media omitted>|<تم استبعاد الوسائط>|<attached: .*>|.*\(file attached\)|"
-    r"(image|video|audio|sticker|GIF|document) omitted|الوسائط غير مضمّنة|تم استبعاد (الصورة|الوسائط|الفيديو|الصوت))$",
+    r"^(?:\[Forwarded\]\s*)?(?:<[^<>\n]*omitted>|<attached: [^>]*>|<تم استبعاد [^<>\n]*>|"
+    r"(?:image|video|audio|sticker|GIF|document) omitted|\S+ \(file attached\)|الوسائط غير مضمّنة)",
     re.I,
 )
+_FILENAME = re.compile(r"^\S.*\.(pdf|xlsx?|docx?|pptx?|jpe?g|png|heic|mp4|opus|m4a)$", re.I)
+_CONTACT = re.compile(r"^(?:\[Forwarded\]\s*)?Contact: BEGIN:VCARD|^BEGIN:VCARD")
 _DELETED = re.compile(r"^(This message was deleted|You deleted this message|تم حذف هذه الرسالة|لقد حذفت هذه الرسالة)\.?$")
-_CHATTER = re.compile(r"^(تمام|تم|اوكي|اوك|ok|okay|شكرا|شكراً|مشكور|يعطيك العافيه|يعطيك العافية|الله يعطيك العافيه|👍|🙏|✅)[.!\s]*$", re.I)
+_CHATTER = re.compile(
+    r"^(?:(?:ok|okay|noted|thanks|thank you|yes|sure|aameen|ameen|alhamdulillah|alhumdulillah|"
+    r"تمام|تم|اوكي|اوك|شكرا|شكراً|مشكور|يعطيك العافيه|يعطيك العافية|الله يعطيك العافيه|اللهم امين|امين)"
+    r"(?:[ ,.]+(?:sir|madam|noted|thanks|engineer))*(?:[ ,.]+\w+)?|<album message>|(?:@\S+[ ,]*)+)[.!\s👍🙏✅🌹🤲🏻]*$",
+    re.I,
+)
 
 
 @dataclass
@@ -35,10 +43,18 @@ class ChatMessage:
     text: str
     media: bool = False
     deleted: bool = False
+    contact: bool = False
+
+    @property
+    def caption(self) -> str:
+        """The words someone typed: the text without a leading media marker or bare file name."""
+        body = _MEDIA.sub("", self.text, count=1).strip() if self.media else self.text
+        return "" if _FILENAME.match(body) else body
 
     @property
     def needs_ai(self) -> bool:
-        return not (self.media or self.deleted or len(self.text) < 3 or _CHATTER.match(self.text))
+        body = self.caption
+        return not (self.deleted or self.contact or len(body) < 3 or _CHATTER.match(body))
 
 
 def parse(raw: str) -> list[ChatMessage]:
@@ -58,8 +74,8 @@ def parse(raw: str) -> list[ChatMessage]:
         if not sep:
             continue  # system line: "X added Y", encryption notice, ...
         text = "\n".join([first, *rest_lines[1:]]).strip()
-        out.append(ChatMessage(_when(g, day_first), head.strip(), text,
-                               media=bool(_MEDIA.match(text)), deleted=bool(_DELETED.match(text))))
+        out.append(ChatMessage(_when(g, day_first), head.strip(), text, media=bool(_MEDIA.match(text)),
+                               deleted=bool(_DELETED.match(text)), contact=bool(_CONTACT.match(text))))
     return out
 
 
@@ -90,7 +106,8 @@ def classify(messages: list[ChatMessage], classifier, projects: list[dict],
     for start in range(0, len(todo), batch_size):
         chunk = todo[start:start + batch_size]
         first = chunk[0]
-        earlier = [as_item(i) for i in range(max(0, first - context), first) if not messages[i].media]
+        earlier = [as_item(i) for i in range(max(0, first - context), first)
+                   if not messages[i].contact and (messages[i].caption or not messages[i].media)]
         for i, c in zip(chunk, classifier.classify_batch([as_item(i) for i in chunk], earlier, projects)):
             results[i] = c
         if progress:
@@ -126,7 +143,8 @@ def write_review(path, messages: list[ChatMessage], results: list[Classification
     reviewed = 0
     for m, c in zip(messages, results):
         if c is None:
-            label = "وسائط" if m.media else "محذوفة" if m.deleted else "دردشة (تخطّي)"
+            label = ("جهة اتصال" if m.contact else "محذوفة" if m.deleted
+                     else "وسائط" if m.media and not m.caption else "دردشة (تخطّي)")
             row = [label, None, None, None, None, None]
         else:
             reviewed += 1
@@ -134,7 +152,8 @@ def write_review(path, messages: list[ChatMessage], results: list[Classification
                                                        it["unit"]) if x) for it in c.items)
             row = [CATEGORY_AR.get(c.category, c.category), round(c.confidence, 2), c.project_code,
                    c.summary, items or None, c.needed_by]
-        ws.append([m.sent_at.date(), m.sent_at.strftime("%H:%M"), m.sender, m.text, *row])
+        text = m.text.split("\n", 1)[0][:60] + " …" if m.contact else m.text
+        ws.append([m.sent_at.date(), m.sent_at.strftime("%H:%M"), m.sender, text, *row])
     for r in ws.iter_rows(min_row=2):
         for cell in r:
             cell.alignment = wrap

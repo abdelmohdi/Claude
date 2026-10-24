@@ -99,3 +99,24 @@ def test_claude_batch_keeps_order_and_flags_missing():
     got = ClaudeClassifier(client=client).classify_batch(msgs, [], [])
     assert [c.category for c in got] == ["progress", "other", "issue"]
     assert got[1].confidence == 0.0
+
+
+def test_captions_files_and_contacts():
+    raw = (
+        "[8/24/26, 9:00:00 AM] A: ‎<image omitted> I need this material for diyar site\n"
+        "[8/24/26, 9:01:00 AM] A: [Forwarded] <document omitted> 00864 - QUOTE - 21-10-2026.pdf\n"
+        "[8/24/26, 9:02:00 AM] A: Contact: BEGIN:VCARD\nVERSION:3.0\nPHOTO;BASE64:/9j/4AAQSkZJRg\nEND:VCARD\n"
+        "[8/24/26, 9:03:00 AM] A: <video omitted>\n"
+    )
+    img, doc, card, vid = chat_export.parse(raw)
+    assert img.media and img.caption == "I need this material for diyar site" and img.needs_ai
+    assert doc.media and doc.caption == "" and not doc.needs_ai
+    assert card.contact and not card.needs_ai
+    assert vid.media and not vid.needs_ai
+
+
+def test_english_chatter_is_skipped_but_decisions_are_not():
+    for t in ["Ok sir", "Ok noted thanks", "Thank you Habib.", "@Nisakh", "<album message>"]:
+        assert chat_export._CHATTER.match(t), t
+    for t in ["Approved", "Yes I need this material", "Any update?", "Ok please send LPO"]:
+        assert not chat_export._CHATTER.match(t), t
