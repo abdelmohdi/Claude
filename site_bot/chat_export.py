@@ -21,7 +21,7 @@ _ANDROID = re.compile(rf"^{_STAMP}\s+-\s+(.*)$")       # 24/10/2026, 14:05 - Nam
 _IOS = re.compile(rf"^\[{_STAMP}\]\s+(.*)$")            # [24/10/2026, 2:05:13 PM] Name: text
 # A media marker opens the message; whatever follows it is the caption (or just the file name).
 _MEDIA = re.compile(
-    r"^(?:\[Forwarded\]\s*)?(?:<[^<>\n]*omitted>|<attached: [^>]*>|<تم استبعاد [^<>\n]*>|"
+    r"^(?:\[Forwarded\]\s*)?(?:<[^<>\n]*omitted>|<album message>|<attached: [^>]*>|<تم استبعاد [^<>\n]*>|"
     r"(?:image|video|audio|sticker|GIF|document) omitted|\S+ \(file attached\)|الوسائط غير مضمّنة)",
     re.I,
 )
