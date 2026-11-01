@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Al Khobar Household Activity and Travel Survey</title>
+<style>
+:root{
+  --green:#0B4D3C; --teal:#1C8C7A; --mint:#E6F2EE; --amber:#D9A441; --ink:#1F2A2E;
+  --muted:#5B6B70; --line:#D5E0DC; --bg:#FFFFFF; --warn-bg:#FFF6E3; --err-bg:#FCE9E6; --ok-bg:#E6F2EE;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Calibri,"Segoe UI",Arial,sans-serif;font-size:17px;line-height:1.45}
+h1,h2,h3,h4{color:var(--green);margin:0 0 .4em;line-height:1.2}
+h1{font-size:1.55rem}h2{font-size:1.35rem;margin-top:.2em}h3{font-size:1.1rem;margin-top:1.1em}h4{font-size:1rem;color:var(--teal)}
+p{margin:.3em 0 .8em}
+a{color:var(--teal)}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;padding:18px 24px 10px;max-width:1280px;margin:0 auto}
+header .sub{color:var(--muted);margin:0;font-size:.95rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:.9rem;color:var(--muted)}
+button{font:inherit;font-size:1rem;padding:9px 16px;border-radius:8px;border:1px solid var(--green);background:var(--green);color:#fff;cursor:pointer}
+button:hover{background:#0e6049}
+button.ghost{background:#fff;color:var(--green)}
+button.ghost:hover{background:var(--mint)}
+button.teal{background:var(--teal);border-color:var(--teal)}
+button.small{padding:5px 10px;font-size:.9rem;border-radius:6px}
+button.danger{background:#fff;color:#9B2C1F;border-color:#9B2C1F}
+button:disabled{opacity:.5;cursor:not-allowed}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:8px 24px;max-width:1280px;margin:0 auto}
+nav.tabs button{background:#fff;color:var(--green);border:1px solid var(--line);padding:8px 14px}
+nav.tabs button.active{background:var(--green);color:#fff;border-color:var(--green)}
+nav.tabs button .n{display:inline-block;min-width:1.4em;text-align:center;border-radius:50%;background:var(--mint);color:var(--green);margin-right:6px;font-size:.85rem;font-weight:bold}
+nav.tabs button.active .n{background:#fff}
+main{max-width:1280px;margin:0 auto;padding:10px 24px 40px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:14px 0;box-shadow:0 1px 3px rgba(11,77,60,.06)}
+.card.tint{background:var(--mint);border-color:transparent}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.82rem;font-weight:bold;background:var(--mint);color:var(--green);margin-right:6px;vertical-align:middle}
+.badge.amber{background:#FBF0D6;color:#7A5A12}
+.notice{background:var(--warn-bg);border:1px solid #F0D9A3;border-radius:10px;padding:12px 16px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 20px}
+.field{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.field label{font-weight:bold;color:var(--ink);font-size:.95rem}
+.field .hint{font-size:.85rem;color:var(--muted);font-weight:normal}
+input[type=text],input[type=number],input[type=date],select,textarea{font:inherit;font-size:1rem;padding:8px 10px;border:1px solid #B9C9C4;border-radius:8px;background:#fff;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px}
+textarea{min-height:64px}
+.checks{display:flex;flex-wrap:wrap;gap:8px 16px}
+.checks label{font-weight:normal;display:flex;align-items:center;gap:6px}
+input[type=checkbox],input[type=radio]{width:18px;height:18px;accent-color:var(--teal)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--mint);color:var(--green)}
+tr.trip td{background:#F6FBF9}
+.tablewrap{overflow-x:auto}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.row .field{flex:1 1 180px}
+.inline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.msg{padding:8px 12px;border-radius:8px;margin:6px 0}
+.msg.error{background:var(--err-bg);border:1px solid #F0B9B0}
+.msg.warn{background:var(--warn-bg);border:1px solid #F0D9A3}
+.msg.ok{background:var(--ok-bg);border:1px solid #BCD9CF}
+.stat{display:inline-block;background:var(--mint);border-radius:10px;padding:10px 16px;margin:4px 8px 4px 0;min-width:150px}
+.stat b{display:block;font-size:1.6rem;color:var(--green)}
+.spcard{border:2px solid var(--teal);border-radius:12px;padding:14px 16px;background:#fff}
+.spcard table td:last-child,.spcard table th:last-child{text-align:right}
+.drawer{position:fixed;top:0;right:-420px;width:400px;max-width:92vw;height:100vh;background:#fff;border-left:1px solid var(--line);box-shadow:-4px 0 18px rgba(0,0,0,.12);padding:20px;overflow:auto;transition:right .25s;z-index:50}
+.drawer.open{right:0}
+.drawer ol li{margin:6px 0}
+footer{max-width:1280px;margin:0 auto;padding:10px 24px 30px;color:var(--muted);font-size:.9rem}
+.kv{font-size:.95rem}.kv b{color:var(--green)}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+.right{text-align:right}
+.guide h3{border-bottom:1px solid var(--line);padding-bottom:4px}
+.pill{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:.82rem;margin:1px 2px}
+details{margin:6px 0}summary{cursor:pointer;color:var(--green);font-weight:bold}
+@media (max-width:640px){header.top,nav.tabs,main{padding-left:14px;padding-right:14px}.card{padding:14px}body{font-size:16px}}
+@media print{header .toolbar,nav.tabs,.drawer,.noprint,footer{display:none!important}main{padding:0}.card{border:none;box-shadow:none;page-break-inside:avoid}body{font-size:12pt}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1>Al Khobar Household Activity and Travel Survey</h1>
+    <p class="sub"><span class="badge">Proposed survey</span><span class="badge amber">Classroom prototype</span> Group 10 · CE 571 — not a deployed survey platform. Data stays in this browser.</p>
+  </div>
+  <div class="toolbar noprint">
+    <button id="btnExample" class="teal" data-action="loadExample">Load family example</button>
+    <button id="btnNotes" class="ghost" data-action="toggleNotes">Presenter notes</button>
+    <button id="btnClear" class="danger" data-action="clearData">Clear data</button>
+    <span id="saveStatus" class="status"></span>
+  </div>
+</header>
+<nav class="tabs noprint" id="tabs"></nav>
+<main id="main"></main>
+<aside id="notes" class="drawer noprint">
+  <div class="inline" style="justify-content:space-between"><h2>Presenter notes</h2><button class="ghost small" data-action="toggleNotes">Close</button></div>
+  <p class="small muted">Live demonstration, about two minutes (slide 22). Keep a static diary excerpt as a fallback.</p>
+  <ol>
+    <li>Open <b>Al_Khobar_Household_Survey.html</b> in a browser.</li>
+    <li>Click <b>Load family example</b>.</li>
+    <li>Briefly show <b>Household → People → Vehicles</b> in natural order.</li>
+    <li>Open <b>Two-day diary</b>, select <b>Father</b> and the assigned <b>weekday</b>.</li>
+    <li>Edit the <b>07:00–07:20 Home → School</b> trip; show the Child as a companion and vehicle V01. <b>Cancel</b> to retain the example.</li>
+    <li>Select the <b>Child</b> to show the passenger copy and the different destination activity.</li>
+    <li>Briefly show <b>Review &amp; export</b> and <b>Questionnaire &amp; guide</b>.</li>
+  </ol>
+  <h4>What to say</h4>
+  <ul class="small">
+    <li>Activity first, then travel only when the location changes.</li>
+    <li>Activities and trips have separate durations.</li>
+    <li>Shared trips are copied to companions and linked by a shared-trip ID; the destination activity is never copied.</li>
+    <li>The prototype is local: no server submission, no continuous GPS, no live geocoder, no verified household access.</li>
+    <li>Completion here is a local export, not an institutional submission.</li>
+  </ul>
+</aside>
+<footer>
+  <b>Illustrative values only.</b> Fictional example records are teaching material, not survey observations or calibration evidence. Optional map links open OpenStreetMap and need internet. No continuous GPS tracking, server submission, geocoding, verified sampling frame or city-boundary validation is implemented.
+</footer>
+<script>
+(function(){
+'use strict';
+const KEY='alkhobar_survey_v1';
+const ACTIVITIES=['Sleep and personal care','Meals','Work','Education','Shopping and services','School escort and other escort','Household and family care','Leisure and social activities','Healthcare','Waiting / other activity','Other'];
+const MODES=['Car','Public transport','Walking','Cycling','Ride-hailing / taxi','Motorcycle','Other'];
+const INCOME=['Less than SAR 5,000','SAR 5,000–9,999','SAR 10,000–14,999','SAR 15,000–19,999','SAR 20,000–29,999','SAR 30,000 or more','Prefer not to answer'];
+const EDU=['No formal education yet','Primary','Intermediate','Secondary','Diploma','Bachelor’s','Postgraduate','Other'];
+const VTYPES=['Car','SUV','Van','Pickup','Motorcycle','Other'];
+const PROVISION=['Owned','Leased / rented','Employer-provided','Other'];
+const STAGE_KINDS=['Walking','Waiting / transfer','Bus','Rail / metro','Other'];
+const TRANSIT_WALK=['Under 5 minutes','5–10 minutes','11–20 minutes','Over 20 minutes','No usable service known','Unknown'];
+const TABS=[['welcome','Welcome & consent'],['household','Household'],['people','People'],['vehicles','Vehicles'],['diary','Two-day diary'],['sp','Parking choice (optional)'],['review','Review & export'],['guide','Questionnaire & guide']];
+const SP_CARDS=[
+ {id:'card1',title:'Card 1',rows:[['Total daily outward-and-return travel time','70 min','100 min'],['Other daily travel costs','SAR 12','SAR 8'],['Daily workplace parking charge','SAR 10','SAR 0'],['Total daily cost','SAR 22','SAR 8']]},
+ {id:'card2',title:'Card 2',rows:[['Total daily outward-and-return travel time','70 min','90 min'],['Other daily travel costs','SAR 12','SAR 8'],['Daily workplace parking charge','SAR 20','SAR 0'],['Total daily cost','SAR 32','SAR 8']]}
+];
+
+function freshState(){return {consent:{a1:'',a2:false,a3:'representative',a4:false},household:{id:'H001',repLabel:'',residence:'',size:'',vehicles:'',income:''},places:[],persons:[],vehicles:[],dates:{weekday:'2026-11-08',weekend:'2026-11-13'},diary:{},sp:{},meta:{version:1,created:new Date().toISOString(),source:'classroom prototype'}};}
+let state=freshState();
+let draft=null;
+const ui={tab:'welcome',pid:'',date:'',newPlace:false,notes:false,lastChecks:null};
+const roots={state:()=>state,draft:()=>draft,ui:()=>ui};
+
+/* ---------- helpers ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toMin=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||'').trim());if(!m)return null;const h=+m[1],mi=+m[2];if(mi>59||h>24||(h===24&&mi>0))return null;return h*60+mi;};
+const fromMin=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const place=id=>state.places.find(p=>p.id===id);
+const placeName=id=>{const p=place(id);return p?p.label:(id?('['+id+']'):'—');};
+const person=id=>state.persons.find(p=>p.id===id);
+const personName=id=>{const p=person(id);return p?(p.label||p.id):id;};
+const vehicle=id=>state.vehicles.find(v=>v.id===id);
+const nextId=(arr,prefix)=>{let n=1;while(arr.some(x=>x.id===prefix+String(n).padStart(2,'0')))n++;return prefix+String(n).padStart(2,'0');};
+const dayKey=(pid,date)=>pid+'|'+date;
+function getDay(pid,date,create){const k=dayKey(pid,date);if(!state.diary[k]&&create)state.diary[k]={startLoc:'',records:[],ordinary:'',unusual:'',noTravel:false,reviewed:false};return state.diary[k];}
+function sortedRecords(day){return (day?day.records.slice():[]).sort((a,b)=>(toMin(a.start)??0)-(toMin(b.start)??0));}
+function getPath(root,path){return path.split('.').reduce((o,k)=>o==null?undefined:o[k],root);}
+function setPath(root,path,val){const ks=path.split('.');let o=root;for(let i=0;i<ks.length-1;i++){if(o[ks[i]]==null)o[ks[i]]={};o=o[ks[i]];}o[ks[ks.length-1]]=val;}
+function resolve(path){const i=path.indexOf('.');const r=roots[path.slice(0,i)];return [r?r():null,path.slice(i+1)];}
+function isChild(p){return p&&p.age!==''&&p.age!=null&&+p.age<18;}
+function canDrive(p){return p&&!isChild(p)&&p.licence==='Holds valid licence';}
+function mapLink(p){if(p.lat&&p.lon)return 'https://www.openstreetmap.org/?mlat='+encodeURIComponent(p.lat)+'&mlon='+encodeURIComponent(p.lon)+'#map=15/'+encodeURIComponent(p.lat)+'/'+encodeURIComponent(p.lon);return 'https://www.openstreetmap.org/search?query='+encodeURIComponent([p.label,p.description,p.locality].filter(Boolean).join(', '));}
+
+/* ---------- persistence ---------- */
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));setStatus('Saved locally '+new Date().toLocaleTimeString());}catch(e){setStatus('Local saving unavailable in this browser');}}
+function load(){try{const s=localStorage.getItem(KEY);if(s){state=JSON.parse(s);setStatus('Resumed from local storage');return true;}}catch(e){}return false;}
+function setStatus(t){const el=document.getElementById('saveStatus');if(el)el.textContent=t;}
+
+/* ---------- example data ---------- */
+function exampleState(){
+  const s=freshState();
+  s.consent={a1:'yes',a2:true,a3:'representative',a4:true};
+  s.places=[
+    {id:'L01',label:'Home',description:'Family residence (illustrative)',locality:'Al Khobar (illustrative)',lat:'',lon:''},
+    {id:'L02',label:'School',description:'Child’s school (illustrative)',locality:'Al Khobar (illustrative)',lat:'',lon:''},
+    {id:'L03',label:'Workplace',description:'Father’s workplace (illustrative)',locality:'Al Khobar (illustrative)',lat:'',lon:''},
+    {id:'L04',label:'Supermarket A',description:'On the route home; smaller selection',locality:'Al Khobar (illustrative)',lat:'',lon:''},
+    {id:'L05',label:'Supermarket B',description:'Requires a detour; wider selection',locality:'Al Khobar (illustrative)',lat:'',lon:''},
+    {id:'L06',label:'Park',description:'Weekend outing (illustrative)',locality:'Al Khobar (illustrative)',lat:'',lon:''},
+    {id:'L07',label:'Community centre',description:'Mother’s weekday outing (illustrative)',locality:'Al Khobar (illustrative)',lat:'',lon:''}
+  ];
+  s.household={id:'H001',repLabel:'Father (household representative)',residence:'L01',size:3,vehicles:1,income:'SAR 15,000–19,999'};
+  s.persons=[
+    {id:'P01',label:'Father',age:40,gender:'Male',education:'Bachelor’s',nationality:'',employed:true,student:false,licence:'Holds valid licence',workplace:'L03',workSchedule:'Fixed',workStart:'08:00',workEnd:'16:00',wfh:'Never',parking:'Paid parking available',parkingPayer:'Employee',parkingCharge:10,school:'',eduStart:'',eduEnd:'',transitWalk:'11–20 minutes',constraints:'Returns the shared car before 17:15 on weekdays (illustrative)'},
+    {id:'P02',label:'Mother',age:38,gender:'Female',education:'Bachelor’s',nationality:'',employed:false,student:false,licence:'Holds valid licence',workplace:'',workSchedule:'',workStart:'',workEnd:'',wfh:'',parking:'',parkingPayer:'',parkingCharge:'',school:'',eduStart:'',eduEnd:'',transitWalk:'11–20 minutes',constraints:'Needs the shared car at 17:15 on the weekday (illustrative)'},
+    {id:'P03',label:'Child',age:10,gender:'Male',education:'No formal education yet',nationality:'',employed:false,student:true,licence:'Not applicable',workplace:'',workSchedule:'',workStart:'',workEnd:'',wfh:'',parking:'',parkingPayer:'',parkingCharge:'',school:'L02',eduStart:'07:20',eduEnd:'14:00',transitWalk:'Unknown',constraints:'Escorted to and from school'}
+  ];
+  s.vehicles=[{id:'V01',type:'Car',provision:'Owned',drivers:['P01','P02'],restrictions:'One shared car. Mother needs it from 17:15 on the weekday (illustrative).'}];
+  const WD='2026-11-08',WE='2026-11-13';
+  let rid=0;const A=(st,en,act,loc,det)=>({id:'R'+String(++rid).padStart(3,'0'),type:'activity',activity:act,place:loc,start:st,end:en,detail:det||''});
+  const T=(st,en,o,d,modes,role,veh,comp,shared,extra)=>Object.assign({id:'R'+String(++rid).padStart(3,'0'),type:'trip',origin:o,dest:d,start:st,end:en,modes:modes,role:role||'',vehicle:veh||'',companions:comp||[],nonHH:0,stages:[],fare:'',parking:'',toll:'',note:'',sharedId:shared||''},extra||{});
+  const day=(pid,date,recs,extra)=>{s.diary[dayKey(pid,date)]=Object.assign({startLoc:'L01',records:recs,ordinary:'Yes',unusual:'',noTravel:false,reviewed:true},extra||{});};
+  day('P01',WD,[A('00:00','06:00','Sleep and personal care','L01'),A('06:00','06:30','Sleep and personal care','L01'),A('06:30','07:00','Meals','L01'),
+    T('07:00','07:20','L01','L02',['Car'],'Driver','V01',['P03'],'S01'),A('07:20','07:25','School escort and other escort','L02'),
+    T('07:25','08:00','L02','L03',['Car'],'Driver','V01',[],'',{parking:10,note:'Workplace parking paid by employee (illustrative)'}),A('08:00','16:00','Work','L03'),
+    T('16:00','16:15','L03','L04',['Car'],'Driver','V01',[],''),A('16:15','16:35','Shopping and services','L04'),
+    T('16:35','17:00','L04','L01',['Car'],'Driver','V01',[],''),A('17:00','18:00','Household and family care','L01'),A('18:00','19:00','Meals','L01'),A('19:00','23:00','Leisure and social activities','L01'),A('23:00','24:00','Sleep and personal care','L01')]);
+  day('P01',WE,[A('00:00','08:00','Sleep and personal care','L01'),A('08:00','09:00','Sleep and personal care','L01'),A('09:00','10:00','Meals','L01'),
+    T('10:00','10:20','L01','L06',['Car'],'Driver','V01',['P02','P03'],'S03'),A('10:20','12:00','Leisure and social activities','L06'),
+    T('12:00','12:20','L06','L01',['Car'],'Driver','V01',['P02','P03'],'S04'),A('12:20','13:00','Meals','L01'),A('13:00','18:00','Leisure and social activities','L01'),A('18:00','19:00','Meals','L01'),A('19:00','22:00','Leisure and social activities','L01'),A('22:00','24:00','Sleep and personal care','L01')]);
+  day('P02',WD,[A('00:00','06:00','Sleep and personal care','L01'),A('06:00','07:00','Household and family care','L01'),A('07:00','07:30','Meals','L01'),A('07:30','13:40','Household and family care','L01'),
+    T('13:40','14:00','L01','L02',['Walking'],'','',[],''),A('14:00','14:05','School escort and other escort','L02'),
+    T('14:05','14:25','L02','L01',['Walking'],'','',['P03'],'S02'),A('14:25','17:15','Household and family care','L01'),
+    T('17:15','17:30','L01','L07',['Car'],'Driver','V01',[],''),A('17:30','18:30','Leisure and social activities','L07'),
+    T('18:30','18:45','L07','L01',['Car'],'Driver','V01',[],''),A('18:45','19:30','Meals','L01'),A('19:30','23:00','Leisure and social activities','L01'),A('23:00','24:00','Sleep and personal care','L01')]);
+  day('P02',WE,[A('00:00','08:00','Sleep and personal care','L01'),A('08:00','09:00','Sleep and personal care','L01'),A('09:00','10:00','Meals','L01'),
+    T('10:00','10:20','L01','L06',['Car'],'Passenger','V01',['P01','P03'],'S03'),A('10:20','12:00','Leisure and social activities','L06'),
+    T('12:00','12:20','L06','L01',['Car'],'Passenger','V01',['P01','P03'],'S04'),A('12:20','13:00','Meals','L01'),A('13:00','18:00','Leisure and social activities','L01'),A('18:00','19:00','Meals','L01'),A('19:00','22:00','Leisure and social activities','L01'),A('22:00','24:00','Sleep and personal care','L01')]);
+  day('P03',WD,[A('00:00','06:30','Sleep and personal care','L01'),A('06:30','06:45','Sleep and personal care','L01'),A('06:45','07:00','Meals','L01'),
+    T('07:00','07:20','L01','L02',['Car'],'Passenger','V01',['P01'],'S01'),A('07:20','14:00','Education','L02'),A('14:00','14:05','Waiting / other activity','L02','Waiting for mother'),
+    T('14:05','14:25','L02','L01',['Walking'],'','',['P02'],'S02'),A('14:25','16:00','Leisure and social activities','L01'),A('16:00','17:00','Education','L01','Homework'),A('17:00','18:00','Leisure and social activities','L01'),A('18:00','19:00','Meals','L01'),A('19:00','21:00','Leisure and social activities','L01'),A('21:00','24:00','Sleep and personal care','L01')]);
+  day('P03',WE,[A('00:00','08:00','Sleep and personal care','L01'),A('08:00','09:00','Sleep and personal care','L01'),A('09:00','10:00','Meals','L01'),
+    T('10:00','10:20','L01','L06',['Car'],'Passenger','V01',['P01','P02'],'S03'),A('10:20','12:00','Leisure and social activities','L06'),
+    T('12:00','12:20','L06','L01',['Car'],'Passenger','V01',['P01','P02'],'S04'),A('12:20','13:00','Meals','L01'),A('13:00','18:00','Leisure and social activities','L01'),A('18:00','19:00','Meals','L01'),A('19:00','22:00','Leisure and social activities','L01'),A('22:00','24:00','Sleep and personal care','L01')]);
+  s.sp={P01:{card1:'A',card1Reason:'',card2:'B',card2Reason:'',confirmed:true,note:'Illustrative answers entered for the teaching example'}};
+  s.meta.example=true;
+  return s;
+}
+
+/* ---------- checks ---------- */
+function runChecks(){
+  const out=[];const push=(level,pid,date,msg)=>out.push({level,pid,date,msg});
+  const dates=[state.dates.weekday,state.dates.weekend];
+  let tripCount=0,driverCount=0;
+  const driverTrips=[];
+  if(!state.persons.length)push('warn','','','No household members recorded yet.');
+  state.persons.forEach(p=>{
+    if(p.age===''||p.age==null)push('warn',p.id,'','Age is missing.');
+    if(!p.gender)push('warn',p.id,'','Gender is missing.');
+  });
+  state.vehicles.forEach(v=>(v.drivers||[]).forEach(d=>{const p=person(d);if(p&&!canDrive(p))push('warn',d,'','Listed as a permitted driver of '+v.id+' but is under 18 or has no valid licence.');}));
+  state.persons.forEach(p=>dates.forEach(date=>{
+    const day=getDay(p.id,date,false);const label=(p.label||p.id)+' · '+date;
+    if(!day||!day.records.length){push('error',p.id,date,'No diary records for this day.');return;}
+    const recs=sortedRecords(day);
+    let cur=day.startLoc||'';let cover=0;
+    recs.forEach((r,i)=>{
+      const st=toMin(r.start),en=toMin(r.end);
+      if(st==null||en==null){push('error',p.id,date,'Record '+r.id+' has an invalid time.');return;}
+      if(en<=st)push('error',p.id,date,'Record '+r.id+' ends before it starts.');
+      cover+=Math.max(0,en-st);
+      if(i===0&&st!==0)push('error',p.id,date,'The day does not start at 00:00 (first record starts '+r.start+').');
+      if(i>0){const pe=toMin(recs[i-1].end);if(pe!=null){if(st<pe)push('error',p.id,date,'Overlapping records: '+recs[i-1].id+' and '+r.id+' ('+recs[i-1].end+' / '+r.start+'). Check their times.');else if(st>pe)push('error',p.id,date,'Time gap '+recs[i-1].end+'–'+r.start+': what was the person doing during the missing interval?');}}
+      if(i===recs.length-1&&en!==1440)push('error',p.id,date,'The day does not finish at 24:00 (last record ends '+r.end+').');
+      if(r.type==='activity'){
+        if(!r.activity)push('error',p.id,date,'Record '+r.id+' has no main activity.');
+        if(!r.place)push('error',p.id,date,'Record '+r.id+' has no location.');
+        else if(cur&&r.place!==cur)push('error',p.id,date,'Location discontinuity at '+r.start+': activity at '+placeName(r.place)+' but the previous location was '+placeName(cur)+'. Was a trip missed?');
+        cur=r.place||cur;
+      }else{
+        tripCount++;
+        if(!r.origin||!r.dest)push('error',p.id,date,'Trip '+r.id+' is missing an origin or destination.');
+        if(cur&&r.origin&&r.origin!==cur)push('error',p.id,date,'Trip '+r.id+' starts at '+placeName(r.origin)+' but the previous location was '+placeName(cur)+'.');
+        if(r.origin&&r.dest&&r.origin===r.dest)push('warn',p.id,date,'Trip '+r.id+' has the same origin and destination.');
+        const dur=en-st;if(dur>180)push('warn',p.id,date,'Trip '+r.id+' lasts '+dur+' minutes; confirm this implausibly long travel time.');if(dur<1)push('warn',p.id,date,'Trip '+r.id+' lasts under one minute.');
+        if(!(r.modes||[]).length)push('error',p.id,date,'Trip '+r.id+' has no travel mode.');
+        if((r.modes||[]).includes('Car')){
+          if(!r.role)push('warn',p.id,date,'Trip '+r.id+' by car: driver or passenger not recorded.');
+          if(r.role==='Driver'){
+            if(!canDrive(p))push('error',p.id,date,'Trip '+r.id+': recorded as driver but the person is under 18 or has no valid licence.');
+            if(vehicle(r.vehicle)){driverCount++;driverTrips.push({pid:p.id,date,r,st,en});const v=vehicle(r.vehicle);if(!(v.drivers||[]).includes(p.id))push('warn',p.id,date,'Trip '+r.id+': drives '+v.id+' but is not listed among its permitted drivers.');}
+          }
+        }
+        if((r.modes||[]).includes('Public transport')&&!(r.stages||[]).length)push('warn',p.id,date,'Trip '+r.id+' uses public transport but no stages are recorded (walk, wait, in-vehicle).');
+        (r.companions||[]).forEach(c=>{
+          const cd=getDay(c,date,false);const match=cd&&cd.records.find(x=>x.type==='trip'&&x.sharedId&&x.sharedId===r.sharedId);
+          if(!r.sharedId)push('warn',p.id,date,'Trip '+r.id+' lists '+personName(c)+' as a companion but has no shared-trip ID; use “Copy to companions”.');
+          else if(!match)push('warn',p.id,date,'Shared trip '+r.sharedId+': '+personName(c)+' has no matching trip record. Confirm the companions shared this entire segment.');
+          else if(match.start!==r.start||match.end!==r.end||match.origin!==r.origin||match.dest!==r.dest)push('warn',p.id,date,'Shared trip '+r.sharedId+': the copy for '+personName(c)+' has different times or locations.');
+          else if(!(match.companions||[]).includes(p.id))push('warn',p.id,date,'Shared trip '+r.sharedId+': '+personName(c)+'’s copy does not list '+(p.label||p.id)+' as a companion.');
+        });
+        cur=r.dest||cur;
+      }
+    });
+    if(cover!==1440)push('error',p.id,date,'Records cover '+cover+' minutes, not 1,440.');
+    const trips=recs.filter(r=>r.type==='trip').length;
+    if(trips===0&&!day.noTravel)push('warn',p.id,date,'No trips recorded: confirm the person stayed without travelling (E11) or add the missing trips.');
+    if(trips>0&&day.noTravel)push('warn',p.id,date,'“No travel” is confirmed but trips are recorded.');
+    if(!day.ordinary)push('warn',p.id,date,'Ordinary-day question (E9) not answered.');
+    if(day.ordinary==='No'&&!day.unusual)push('warn',p.id,date,'Unusual circumstances (E10) not explained.');
+    if(!day.reviewed)push('warn',p.id,date,'Review with the member (E12) not confirmed.');
+  }));
+  for(let i=0;i<driverTrips.length;i++)for(let j=i+1;j<driverTrips.length;j++){const a=driverTrips[i],b=driverTrips[j];if(a.pid!==b.pid&&a.date===b.date&&a.r.vehicle===b.r.vehicle&&a.st<b.en&&b.st<a.en)push('error',a.pid,a.date,'Vehicle conflict: '+a.r.vehicle+' is driven by '+personName(a.pid)+' ('+a.r.start+'–'+a.r.end+') and '+personName(b.pid)+' ('+b.r.start+'–'+b.r.end+') at the same time.');}
+  const shared={};Object.keys(state.diary).forEach(k=>state.diary[k].records.forEach(r=>{if(r.type==='trip'&&r.sharedId){(shared[r.sharedId]=shared[r.sharedId]||[]).push(r);}}));
+  Object.keys(shared).forEach(id=>{const rs=shared[id];const paid=rs.filter(r=>(r.parking!==''&&r.parking!=null)||(r.toll!==''&&r.toll!=null));if(paid.length>1)push('warn','','','Shared trip '+id+': parking/toll recorded more than once; record shared vehicle payments once.');const drivers=rs.filter(r=>r.role==='Driver');if(drivers.length>1)push('error','','','Shared trip '+id+' has more than one driver.');});
+  const counts={persons:state.persons.length,vehicles:state.vehicles.length,personTrips:tripCount,driverRecords:driverCount,personDays:Object.keys(state.diary).filter(k=>state.diary[k].records.length).length,errors:out.filter(o=>o.level==='error').length,warnings:out.filter(o=>o.level==='warn').length};
+  ui.lastChecks={items:out,counts};
+  return ui.lastChecks;
+}
+
+/* ---------- shared trip copy ---------- */
+function copyTripToCompanions(pid,date,rid){
+  const day=getDay(pid,date,false);if(!day)return 'No diary day.';
+  const r=day.records.find(x=>x.id===rid);if(!r||r.type!=='trip')return 'Trip not found.';
+  if(!(r.companions||[]).length)return 'This trip has no household companions to copy to.';
+  if(!r.sharedId){let n=1;const all=[];Object.keys(state.diary).forEach(k=>state.diary[k].records.forEach(x=>x.sharedId&&all.push(x.sharedId)));while(all.includes('S'+String(n).padStart(2,'0')))n++;r.sharedId='S'+String(n).padStart(2,'0');}
+  const participants=[pid].concat(r.companions);let made=0,skipped=0;
+  r.companions.forEach(c=>{
+    const cd=getDay(c,date,true);
+    if(cd.records.some(x=>x.type==='trip'&&x.sharedId===r.sharedId)){skipped++;return;}
+    const cp=person(c);
+    const copy={id:nextRecordId(),type:'trip',origin:r.origin,dest:r.dest,start:r.start,end:r.end,modes:r.modes.slice(),role:(r.modes.includes('Car')?'Passenger':''),vehicle:r.vehicle,companions:participants.filter(x=>x!==c),nonHH:r.nonHH||0,stages:(r.stages||[]).map(s=>Object.assign({},s)),fare:'',parking:'',toll:'',note:'Copied from '+personName(pid)+'’s record for review. Confirm fare and the destination activity.',sharedId:r.sharedId};
+    if(cp&&isChild(cp))copy.role=r.modes.includes('Car')?'Passenger':'';
+    cd.records.push(copy);made++;
+  });
+  save();return 'Copied to '+made+' companion'+(made===1?'':'s')+(skipped?' ('+skipped+' already had a copy)':'')+'. Shared-trip ID '+r.sharedId+'. Review each copy: the destination activity was not copied and personal fares were left blank.';
+}
+function nextRecordId(){let n=1;const all=new Set();Object.keys(state.diary).forEach(k=>state.diary[k].records.forEach(x=>all.add(x.id)));while(all.has('R'+String(n).padStart(3,'0')))n++;return 'R'+String(n).padStart(3,'0');}
+
+/* ---------- exports ---------- */
+function exportJSON(){return JSON.stringify(Object.assign({exportedAt:new Date().toISOString(),notice:'Classroom prototype export. Fictional/illustrative data; not survey observations.'},state),null,2);}
+function exportCSV(){
+  const rows=[['household_id','person_id','person_label','date','record_id','record_type','start','end','duration_min','activity_or_modes','location_or_origin','destination','role','vehicle','companions','non_household_companions','shared_trip_id','pt_stages','fare_sar','parking_sar','toll_sar','detail_or_note']];
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  state.persons.forEach(p=>[state.dates.weekday,state.dates.weekend].forEach(date=>{const d=getDay(p.id,date,false);if(!d)return;sortedRecords(d).forEach(r=>{const dur=(toMin(r.end)??0)-(toMin(r.start)??0);
+    if(r.type==='activity')rows.push([state.household.id,p.id,p.label,date,r.id,'activity',r.start,r.end,dur,r.activity,placeName(r.place),'','','','','','','','','','',r.detail]);
+    else rows.push([state.household.id,p.id,p.label,date,r.id,'trip',r.start,r.end,dur,(r.modes||[]).join('; '),placeName(r.origin),placeName(r.dest),r.role,r.vehicle,(r.companions||[]).map(personName).join('; '),r.nonHH,r.sharedId,(r.stages||[]).map(s=>s.kind+(s.line?' '+s.line:'')+(s.start?' '+s.start+'-'+s.end:'')).join(' > '),r.fare,r.parking,r.toll,r.note]);});}));
+  return rows.map(r=>r.map(q).join(',')).join('\n');
+}
+function download(name,text,type){try{const b=new Blob([text],{type:type||'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}catch(e){alert('Export failed in this browser.');}}
+
+/* ---------- rendering ---------- */
+function sel(path,opts,val,extra){return '<select data-path="'+path+'" '+(extra||'')+'><option value="">— select —</option>'+opts.map(o=>{const v=Array.isArray(o)?o[0]:o,l=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'"'+(String(val)===String(v)?' selected':'')+'>'+esc(l)+'</option>';}).join('')+'</select>';}
+function placeSel(path,val,extra){return sel(path,state.places.map(p=>[p.id,p.label+(p.locality?' — '+p.locality:'')]),val,extra);}
+function txt(path,val,ph,type){return '<input type="'+(type||'text')+'" data-path="'+path+'" value="'+esc(val==null?'':val)+'" placeholder="'+esc(ph||'')+'">';}
+function field(label,inner,hint,id){return '<div class="field"><label>'+(id?'<span class="muted small">'+id+'</span> ':'')+esc(label)+(hint?' <span class="hint">'+esc(hint)+'</span>':'')+'</label>'+inner+'</div>';}
+function chk(path,val,label){return '<label><input type="checkbox" data-path="'+path+'"'+(val?' checked':'')+'> '+esc(label)+'</label>';}
+function listChk(path,arr,item,label,dis){return '<label><input type="checkbox" data-list="'+path+'" data-item="'+esc(item)+'"'+((arr||[]).includes(item)?' checked':'')+(dis?' disabled':'')+'> '+esc(label)+'</label>';}
+
+function renderTabs(){document.getElementById('tabs').innerHTML=TABS.map((t,i)=>'<button data-action="tab" data-arg="'+t[0]+'" class="'+(ui.tab===t[0]?'active':'')+'"><span class="n">'+(i+1)+'</span>'+esc(t[1])+'</button>').join('');}
+
+function renderWelcome(){const c=state.consent;return `
+<div class="card">
+ <h2>Welcome and participation instructions <span class="badge">Section A</span></h2>
+ <p>This survey collects information about household characteristics and daily activities and travel to support transportation planning research. <b>Participation is voluntary.</b> Please record the activities and trips of all household members on the two assigned diary days.</p>
+ <p class="small muted">Before actual fieldwork, the responsible organization, contact details, approved data handling, retention and withdrawal procedures must be supplied. This demonstration has no institutional collection endpoint.</p>
+ <div class="notice"><b>Local demonstration notice.</b> Data stays in this browser. Use fictional information for teaching. Export or clear it locally. No continuous GPS tracking and no institutional submission are implemented.</div>
+ ${field('Do you agree to participate?','<div class="checks"><label><input type="radio" name="a1" data-path="state.consent.a1" value="yes"'+(c.a1==='yes'?' checked':'')+'> Yes — continue</label><label><input type="radio" name="a1" data-path="state.consent.a1" value="no"'+(c.a1==='no'?' checked':'')+'> No — end response</label></div>','','A1')}
+ ${c.a1==='no'?'<div class="msg warn">Thank you. The response ends here. You may clear the local data using the button above.</div>':''}
+ ${field('Explain the survey to participating adult household members.','<div class="checks">'+chk('state.consent.a2',c.a2,'The representative confirms they have done so')+'</div>','','A2')}
+ ${field('Who completes the response?','<div class="kv">A parent or household representative enters everyone’s information after consulting them, and assists children.</div>','','A3')}
+ ${field('Confirm known information with each member.','<div class="checks">'+chk('state.consent.a4',c.a4,'I will confirm details with each member and will not guess missing details')+'</div>','','A4')}
+ <h3>How the survey works</h3>
+ <ol>
+  <li><b>Household</b> — residence, size, vehicles, income band and saved places.</li>
+  <li><b>People</b> — one record per member; work, study and transit-access questions appear only when relevant.</li>
+  <li><b>Vehicles</b> — one record per vehicle with its permitted drivers.</li>
+  <li><b>Two-day diary</b> — one assigned weekday (${esc(state.dates.weekday)}) and one assigned weekend day (${esc(state.dates.weekend)}), the same dates for all members. Record the main activity, then a trip whenever the location changes, from 00:00 to 24:00.</li>
+  <li><b>Optional parking choice</b> — two short cards for employed members who travel to a workplace.</li>
+  <li><b>Review &amp; export</b> — automated checks, then local JSON/CSV export.</li>
+ </ol>
+ <p class="noprint"><button data-action="tab" data-arg="household">Start with the household →</button> <button class="ghost" data-action="loadExample">Load family example</button></p>
+</div>`;}
+
+function renderHousehold(){const h=state.household;return `
+<div class="card">
+ <h2>Household information <span class="badge">Section B</span></h2>
+ <div class="grid">
+  ${field('Household ID','<input type="text" value="'+esc(h.id)+'" disabled>','Automatically assigned','B1')}
+  ${field('Representative label',txt('state.household.repLabel',h.repLabel,'e.g. Father (household representative)'),'Optional role or label; a legal name is unnecessary for the demo','B2')}
+  ${field('Where is the household’s usual residence?',placeSel('state.household.residence',h.residence),'Choose a saved place, or add one below','B3')}
+  ${field('How many people usually live in this household?',txt('state.household.size',h.size,'',''),'Number including children; that many person records are created','B4')}
+  ${field('How many vehicles are normally available for private household use?',txt('state.household.vehicles',h.vehicles,'',''),'Include available leased or employer vehicles; vehicle records are created','B5')}
+  ${field('What is the household’s approximate total monthly income, in SAR?',sel('state.household.income',INCOME,h.income),'Total household income, not the representative’s alone','B6')}
+ </div>
+ <p class="small muted">Income bands are proposed bands, not observed income distributions.</p>
+</div>
+<div class="card">
+ <h2>Saved places</h2>
+ <p class="small">Home, usual work/school and other repeated places can be reused across the diary. Store a label, description or address, locality and optional coordinates. Manual entry works offline; the optional map check opens OpenStreetMap and needs internet. Verify locations and study boundaries before field deployment.</p>
+ <div class="tablewrap"><table><tr><th>ID</th><th>Label</th><th>Description / address / landmark</th><th>City / locality</th><th>Lat</th><th>Lon</th><th class="noprint"></th></tr>
+ ${state.places.map((p,i)=>'<tr><td>'+esc(p.id)+'</td><td>'+txt('state.places.'+i+'.label',p.label)+'</td><td>'+txt('state.places.'+i+'.description',p.description)+'</td><td>'+txt('state.places.'+i+'.locality',p.locality)+'</td><td>'+txt('state.places.'+i+'.lat',p.lat,'optional')+'</td><td>'+txt('state.places.'+i+'.lon',p.lon,'optional')+'</td><td class="noprint" style="white-space:nowrap"><a class="small" target="_blank" rel="noopener" href="'+esc(mapLink(p))+'">Check on map</a> <button class="small ghost" data-action="delPlace" data-arg="'+i+'">Remove</button></td></tr>').join('')||'<tr><td colspan="7" class="muted">No saved places yet.</td></tr>'}
+ </table></div>
+ <p class="noprint"><button class="ghost" data-action="addPlace">+ Add a place</button></p>
+</div>`;}
+
+function renderPeople(){if(!state.persons.length)return '<div class="card"><h2>Household members <span class="badge">Section C</span></h2><p>No member records yet. Enter the household size on the Household tab, or add a member here.</p><p class="noprint"><button data-action="addPerson">+ Add a member</button></p></div>';
+ return '<div class="card"><h2>Household members <span class="badge">Section C</span></h2><p class="small">One record per member. Irrelevant work or student questions are skipped automatically. The representative consults each member rather than guessing.</p></div>'+state.persons.map((p,i)=>{const b='state.persons.'+i+'.';return `
+<div class="card">
+ <div class="inline" style="justify-content:space-between"><h3 style="margin-top:0">${esc(p.id)} · ${esc(p.label||'Member '+(i+1))}</h3><button class="small ghost noprint" data-action="delPerson" data-arg="${i}">Remove</button></div>
+ <div class="grid">
+  ${field('Member label',txt(b+'label',p.label,'Father, Mother, Child …'),'Assigned ID plus a label','C1')}
+  ${field('Age in completed years',txt(b+'age',p.age,'','number'),'0 for a child under one year','C2')}
+  ${field('Gender',sel(b+'gender',['Male','Female'],p.gender),'','C3')}
+  ${field('Highest education completed',sel(b+'education',EDU,p.education),'','C4')}
+  ${field('Nationality group',sel(b+'nationality',['Saudi','Non-Saudi'],p.nationality),'Optional','C5')}
+  ${field('Current employment and education status','<div class="checks">'+chk(b+'employed',p.employed,'Employed or self-employed')+chk(b+'student',p.student,'Student')+'</div>','Both can apply; leave both unchecked if neither applies','C6')}
+  ${field('Driving-licence status',sel(b+'licence',['Holds valid licence','Does not hold valid licence','Not applicable'],p.licence),'','C7')}
+ </div>
+ ${p.employed?`<h4>Work (asked because the member is employed)</h4><div class="grid">
+  ${field('Usual workplace',placeSel(b+'workplace',p.workplace),'Saved place','C8')}
+  ${field('Work schedule',sel(b+'workSchedule',['Fixed','Flexible','Shifts / variable','No usual schedule'],p.workSchedule),'','C9')}
+  ${field('Usual work start','<div class="inline">'+txt(b+'workStart',p.workStart,'HH:MM')+'</div>','24-hour time, if applicable','C10')}
+  ${field('Usual work end','<div class="inline">'+txt(b+'workEnd',p.workEnd,'HH:MM')+'</div>','','C10')}
+  ${field('Working from home',sel(b+'wfh',['Never','Some workdays','All workdays','Varies'],p.wfh),'','C11')}
+  ${field('Workplace parking availability',sel(b+'parking',['Free parking available','Paid parking available','No parking available','Unknown'],p.parking),'','C12')}
+  ${p.parking==='Paid parking available'?field('Who normally pays workplace parking charges?',sel(b+'parkingPayer',['Employee','Employer','Shared payment','Unknown'],p.parkingPayer),'','C13'):''}
+  ${p.parking==='Paid parking available'?field('Typical total daily parking charge (SAR)',txt(b+'parkingCharge',p.parkingCharge,'leave blank if unknown','number'),'','C14'):''}
+ </div>`:''}
+ ${p.student?`<h4>Education (asked because the member is a student)</h4><div class="grid">
+  ${field('Usual school / college / university',placeSel(b+'school',p.school),'Saved place','C15')}
+  ${field('Usual education start',txt(b+'eduStart',p.eduStart,'HH:MM'),'','C16')}
+  ${field('Usual education end',txt(b+'eduEnd',p.eduEnd,'HH:MM'),'','C16')}
+ </div>`:''}
+ <div class="grid">
+  ${field('Usual walking time from home to a usable transit stop',sel(b+'transitWalk',TRANSIT_WALK,p.transitWalk),'','C17')}
+  ${field('Mobility, access, escort or other travel constraints','<textarea data-path="'+b+'constraints">'+esc(p.constraints)+'</textarea>','Optional short text','C18')}
+ </div>
+</div>`;}).join('')+'<p class="noprint"><button class="ghost" data-action="addPerson">+ Add a member</button></p>';}
+
+function renderVehicles(){return '<div class="card"><h2>Household vehicles <span class="badge">Section D</span></h2><p class="small">Ownership or provision and actual availability differ. Actual use is captured in the diary and linked by vehicle ID. Recorded drivers are checked against the permitted-driver and licence information.</p>'+(state.vehicles.length?'':'<p>No vehicle records yet.</p>')+'</div>'+state.vehicles.map((v,i)=>{const b='state.vehicles.'+i+'.';return `
+<div class="card">
+ <div class="inline" style="justify-content:space-between"><h3 style="margin-top:0">${esc(v.id)}</h3><button class="small ghost noprint" data-action="delVehicle" data-arg="${i}">Remove</button></div>
+ <div class="grid">
+  ${field('Vehicle ID','<input type="text" value="'+esc(v.id)+'" disabled>','Automatically assigned','D1')}
+  ${field('Vehicle type',sel(b+'type',VTYPES,v.type),'','D2')}
+  ${field('How is the vehicle provided?',sel(b+'provision',PROVISION,v.provision),'','D3')}
+  ${field('Which members may drive it?','<div class="checks">'+(state.persons.map(p=>listChk(b+'drivers',v.drivers,p.id,(p.label||p.id)+(canDrive(p)?'':' (no licence / under 18)'),!canDrive(p))).join('')||'<span class="muted">Add members first</span>')+'</div>','Select existing person IDs','D4')}
+  ${field('Usual availability restrictions / sharing arrangements','<textarea data-path="'+b+'restrictions">'+esc(v.restrictions)+'</textarea>','Short text, including relevant time conditions','D5')}
+ </div>
+</div>`;}).join('')+'<p class="noprint"><button class="ghost" data-action="addVehicle">+ Add a vehicle</button></p>';}
+
+function renderDiary(){
+ if(!state.persons.length)return '<div class="card"><h2>Two-day diary <span class="badge">Sections E–F</span></h2><p>Add household members first.</p></div>';
+ if(!ui.pid||!person(ui.pid))ui.pid=state.persons[0].id;
+ if(!ui.date)ui.date=state.dates.weekday;
+ const p=person(ui.pid);const day=getDay(ui.pid,ui.date,true);const recs=sortedRecords(day);
+ let html=`<div class="card">
+ <h2>Two-day diary <span class="badge">Sections E–F</span></h2>
+ <p class="small"><b>Activity → location → start/end → travel if the location changes → next activity → full-day review.</b> Include at-home activities, all modes, short walks, out-of-area trips, transfer stages, vehicle sharing and no-travel days. Activities and trips have separate durations.</p>
+ <div class="row">
+  ${field('Assigned weekday date',txt('state.dates.weekday',state.dates.weekday,'YYYY-MM-DD','date'),'Same for all members','E1')}
+  ${field('Assigned weekend date',txt('state.dates.weekend',state.dates.weekend,'YYYY-MM-DD','date'),'Same for all members','E1')}
+  ${field('Member',sel('ui.pid',state.persons.map(x=>[x.id,x.id+' · '+(x.label||'')]),ui.pid),'','E2')}
+  ${field('Diary day',sel('ui.date',[[state.dates.weekday,'Weekday '+state.dates.weekday],[state.dates.weekend,'Weekend '+state.dates.weekend]],ui.date),'','E2')}
+ </div>
+ <p class="small muted">Calendar grouping is proposed as Sunday–Thursday (weekday) and Friday–Saturday (weekend); record actual work circumstances because weekend days may be working days for some members.</p>
+</div>
+<div class="card">
+ <h3 style="margin-top:0">${esc(p.label||p.id)} · ${esc(ui.date)} ${ui.date===state.dates.weekend?'<span class="badge">Weekend day</span>':'<span class="badge">Weekday</span>'}</h3>
+ <div class="row">
+  ${field('Where was the person at 00:00?',placeSel('state.diary.'+dayKey(ui.pid,ui.date)+'.startLoc',day.startLoc),'Home, another location, or the origin of a continuing trip','E3')}
+  ${field('Was this an ordinary day?',sel('state.diary.'+dayKey(ui.pid,ui.date)+'.ordinary',['Yes','No — unusual circumstances','Unknown'].map(x=>[x.split(' ')[0]==='No'?'No':x,x]),day.ordinary),'','E9')}
+  ${day.ordinary==='No'?field('Explain unusual circumstances',txt('state.diary.'+dayKey(ui.pid,ui.date)+'.unusual',day.unusual,'short text'),'The day is retained with its flag','E10'):''}
+ </div>
+ <div class="tablewrap"><table>
+  <tr><th>Time</th><th>Record</th><th>Activity / modes</th><th>Location / route</th><th>Sharing / role</th><th>Costs (SAR)</th><th class="noprint">Actions</th></tr>
+  ${recs.map(r=>{const dur=(toMin(r.end)??0)-(toMin(r.start)??0);if(r.type==='activity')return '<tr><td>'+esc(r.start)+'–'+esc(r.end)+'<br><span class="small muted">'+dur+' min</span></td><td>Activity</td><td>'+esc(r.activity)+(r.detail?'<br><span class="small muted">'+esc(r.detail)+'</span>':'')+'</td><td>'+esc(placeName(r.place))+'</td><td></td><td></td><td class="noprint" style="white-space:nowrap"><button class="small ghost" data-action="editRec" data-arg="'+r.id+'">Edit</button> <button class="small ghost" data-action="delRec" data-arg="'+r.id+'">Delete</button></td></tr>';
+   const share=[r.role,r.vehicle?('Vehicle '+r.vehicle):'',(r.companions||[]).length?'With '+(r.companions||[]).map(personName).join(', '):'',r.nonHH?('+'+r.nonHH+' non-household'):'',r.sharedId?'<span class="pill">'+esc(r.sharedId)+'</span>':''].filter(Boolean).join('; ');
+   const costs=[r.fare!==''&&r.fare!=null?'fare '+r.fare:'',r.parking!==''&&r.parking!=null?'parking '+r.parking:'',r.toll!==''&&r.toll!=null?'toll '+r.toll:''].filter(Boolean).join(', ');
+   return '<tr class="trip"><td>'+esc(r.start)+'–'+esc(r.end)+'<br><span class="small muted">'+dur+' min travel</span></td><td>Travel</td><td>'+esc((r.modes||[]).join(' + '))+((r.stages||[]).length?'<br><span class="small muted">'+r.stages.map(s=>esc(s.kind+(s.line?' '+s.line:''))).join(' › ')+'</span>':'')+'</td><td>'+esc(placeName(r.origin))+' → '+esc(placeName(r.dest))+'</td><td>'+share+'</td><td>'+esc(costs)+'</td><td class="noprint" style="white-space:nowrap"><button class="small ghost" data-action="editRec" data-arg="'+r.id+'">Edit</button> '+((r.companions||[]).length?'<button class="small ghost" data-action="copyTrip" data-arg="'+r.id+'">Copy to companions</button> ':'')+'<button class="small ghost" data-action="delRec" data-arg="'+r.id+'">Delete</button></td></tr>';}).join('')||'<tr><td colspan="7" class="muted">No records yet. Start with the activity at 00:00.</td></tr>'}
+ </table></div>
+ <p class="noprint inline"><button data-action="addActivity">+ Add activity</button><button class="teal" data-action="addTrip">+ Add trip (location changed)</button><span class="small muted">Did the next activity occur at the same location? Same location: add the next activity. Changed location: record the trip. (E8)</span></p>
+ ${ui.copyMsg?'<div class="msg ok">'+esc(ui.copyMsg)+'</div>':''}
+ ${draft?renderRecordForm():''}
+ <div class="checks" style="margin-top:10px">
+  ${chk('state.diary.'+dayKey(ui.pid,ui.date)+'.noTravel',day.noTravel,'E11 · No travel on this day (explicit confirmation; activities are still recorded)')}
+  ${chk('state.diary.'+dayKey(ui.pid,ui.date)+'.reviewed',day.reviewed,'E12 · The representative confirms all known activities and trips for this member-day were reviewed with the member')}
+ </div>
+ <p class="small muted">For travel across midnight, record the portion within the assigned day and flag the continuation in the note. A day with no trips is a valid observation, not an automatic exclusion.</p>
+</div>`;
+ return html;}
+
+function renderRecordForm(){const d=draft;const p=person(ui.pid);const others=state.persons.filter(x=>x.id!==ui.pid);
+ if(d.type==='activity')return `<div class="card tint" id="recform"><h3 style="margin-top:0">${d.isNew?'New activity record':'Edit activity record '+esc(d.id)}</h3>
+ <div class="grid">
+  ${field('Main activity',sel('draft.activity',ACTIVITIES,d.activity),'Record the main activity in a period rather than every minor action','E4')}
+  ${field('Activity location','<div class="inline">'+placeSel('draft.place',d.place)+'</div>'+newPlaceBox('draft.place'),'Saved place, or add a new one','E5')}
+  ${field('Start (HH:MM)',txt('draft.start',d.start,'00:00'),'The first record starts at 00:00','E6')}
+  ${field('End (HH:MM)',txt('draft.end',d.end,'24:00'),'The last record ends at 24:00; duration is calculated','E6')}
+  ${field('Activity detail',txt('draft.detail',d.detail,'optional'),'Optional','E7')}
+ </div>
+ ${d.err?'<div class="msg error">'+esc(d.err)+'</div>':''}
+ <p class="noprint inline"><button data-action="saveRec">Save record</button><button class="ghost" data-action="cancelRec">Cancel</button></p></div>`;
+ const car=(d.modes||[]).includes('Car'),pt=(d.modes||[]).includes('Public transport');
+ return `<div class="card tint" id="recform"><h3 style="margin-top:0">${d.isNew?'New trip record':'Edit trip record '+esc(d.id)} ${d.sharedId?'<span class="pill">Shared-trip ID '+esc(d.sharedId)+'</span>':''}</h3>
+ <div class="grid">
+  ${field('Trip origin',placeSel('draft.origin',d.origin),'Previous location prefilled for confirmation','F1')}
+  ${field('Trip destination','<div class="inline">'+placeSel('draft.dest',d.dest)+'</div>'+newPlaceBox('draft.dest'),'Saved or new place','F2')}
+  ${field('Departure (HH:MM)',txt('draft.start',d.start,'HH:MM'),'','F3')}
+  ${field('Arrival (HH:MM)',txt('draft.end',d.end,'HH:MM'),'Travel duration is calculated','F3')}
+ </div>
+ ${field('Modes used (select all used)','<div class="checks">'+MODES.map(m=>listChk('draft.modes',d.modes,m,m)).join('')+'</div>','Record short walks and access, egress and transfer time','F4')}
+ <div class="grid">
+  ${car?field('Driver or passenger?','<div class="checks"><label><input type="radio" name="role" data-path="draft.role" value="Driver"'+(d.role==='Driver'?' checked':'')+(canDrive(p)?'':' disabled')+'> Driver'+(canDrive(p)?'':' (not available: under 18 or no valid licence)')+'</label><label><input type="radio" name="role" data-path="draft.role" value="Passenger"'+(d.role==='Passenger'?' checked':'')+'> Passenger</label></div>','','F5'):''}
+  ${car?field('Vehicle used',sel('draft.vehicle',state.vehicles.map(v=>[v.id,v.id+' · '+(v.type||'')]).concat([['other','Other (non-household) vehicle']]),d.vehicle),'Household vehicle ID or other vehicle','F6'):''}
+  ${field('Household companions for the shared segment','<div class="checks">'+(others.map(o=>listChk('draft.companions',d.companions,o.id,o.label||o.id)).join('')||'<span class="muted">No other members</span>')+'</div>','Select person IDs; use “Copy to companions” after saving','F7')}
+  ${field('Additional non-household companions',txt('draft.nonHH',d.nonHH,'0','number'),'Number','F8')}
+ </div>
+ ${pt?`<h4>Public transport stages <span class="muted small">(F9 · ordered: walking, waiting/transfer, bus, rail/metro, other)</span></h4>
+ <div class="tablewrap"><table><tr><th>#</th><th>Stage</th><th>Line / route (if known)</th><th>Start</th><th>End</th><th class="noprint"></th></tr>
+ ${(d.stages||[]).map((s,i)=>'<tr><td>'+(i+1)+'</td><td>'+sel('draft.stages.'+i+'.kind',STAGE_KINDS,s.kind)+'</td><td>'+txt('draft.stages.'+i+'.line',s.line,'optional')+'</td><td>'+txt('draft.stages.'+i+'.start',s.start,'HH:MM')+'</td><td>'+txt('draft.stages.'+i+'.end',s.end,'HH:MM')+'</td><td class="noprint"><button class="small ghost" data-action="delStage" data-arg="'+i+'">Remove</button></td></tr>').join('')}
+ </table></div><p class="noprint"><button class="small ghost" data-action="addStage">+ Add stage</button></p>`:''}
+ <div class="grid">
+  ${field('Fare paid (SAR)',txt('draft.fare',d.fare,'0 if confirmed free; blank if unknown','number'),'Relevant paid modes','F10')}
+  ${field('Parking paid (SAR)',txt('draft.parking',d.parking,'0 if confirmed free; blank if unknown','number'),'If applicable; record a shared vehicle payment once','F11')}
+  ${field('Toll paid (SAR)',txt('draft.toll',d.toll,'0 if confirmed free; blank if unknown','number'),'If applicable','F12')}
+  ${field('Payment / uncertainty note',txt('draft.note',d.note,'optional'),'Optional explanation','F13')}
+ </div>
+ ${d.err?'<div class="msg error">'+esc(d.err)+'</div>':''}
+ <p class="noprint inline"><button data-action="saveRec">Save record</button><button class="ghost" data-action="cancelRec">Cancel</button></p></div>`;}
+function newPlaceBox(target){if(ui.newPlace!==target)return '<p class="noprint" style="margin:4px 0"><button class="small ghost" data-action="openNewPlace" data-arg="'+target+'">+ New place</button></p>';
+ const n=ui.newPlaceDraft||(ui.newPlaceDraft={label:'',description:'',locality:'',lat:'',lon:''});
+ return '<div class="card" style="margin:6px 0;padding:10px 12px"><div class="row">'+field('Label',txt('ui.newPlaceDraft.label',n.label,'e.g. Clinic'))+field('Description / address',txt('ui.newPlaceDraft.description',n.description,'optional'))+field('Locality',txt('ui.newPlaceDraft.locality',n.locality,'optional'))+field('Lat',txt('ui.newPlaceDraft.lat',n.lat,'optional'))+field('Lon',txt('ui.newPlaceDraft.lon',n.lon,'optional'))+'</div><p class="inline noprint" style="margin:4px 0"><button class="small" data-action="saveNewPlace" data-arg="'+target+'">Save place</button><button class="small ghost" data-action="closeNewPlace">Cancel</button></p></div>';}
+
+function renderSP(){const elig=state.persons.filter(p=>p.employed);return `
+<div class="card">
+ <h2>Optional workplace-parking choice questions <span class="badge">Section G</span> <span class="badge amber">Hypothetical attributes</span></h2>
+ <p class="small">Eligibility: an employed member with workplace travel. The employee answers personally; the representative enters that answer. Public transport time includes walking, waiting and transfers. Attribute values are hypothetical, not measured Al Khobar prices or times. Two short cards per employee are a pilot starting point, not a final optimized statistical design. Hypothetical choices can differ from real behaviour.</p>
+ ${elig.length?'':'<div class="msg warn">No employed member is recorded, so this supplement is skipped.</div>'}
+</div>`+elig.map(p=>{const s=state.sp[p.id]||(state.sp[p.id]={card1:'',card1Reason:'',card2:'',card2Reason:'',confirmed:false,note:''});const b='state.sp.'+p.id+'.';return `
+<div class="card"><h3 style="margin-top:0">${esc(p.label||p.id)} (${esc(p.id)})</h3>
+ <p><b>For this workday, which option would you choose, considering your work schedule, household commitments and travel budget?</b></p>
+ <div class="grid">${SP_CARDS.map(c=>`<div class="spcard"><h4>${c.title} <span class="muted small">(illustrative)</span></h4><table><tr><th>Attribute</th><th>Option A: Car</th><th>Option B: Public transport + walking</th></tr>${c.rows.map((r,i)=>'<tr'+(i===c.rows.length-1?' style="font-weight:bold"':'')+'><td>'+esc(r[0])+'</td><td class="right">'+esc(r[1])+'</td><td class="right">'+esc(r[2])+'</td></tr>').join('')}</table>
+ <div class="checks" style="margin-top:8px"><label><input type="radio" name="${p.id}${c.id}" data-path="${b}${c.id}" value="A"${s[c.id]==='A'?' checked':''}> Option A</label><label><input type="radio" name="${p.id}${c.id}" data-path="${b}${c.id}" value="B"${s[c.id]==='B'?' checked':''}> Option B</label><label><input type="radio" name="${p.id}${c.id}" data-path="${b}${c.id}" value="N"${s[c.id]==='N'?' checked':''}> Neither option is feasible — explain</label></div>
+ ${s[c.id]==='N'?field('Constraint / explanation',txt(b+c.id+'Reason',s[c.id+'Reason'],'record the constraint rather than forcing a choice')):''}</div>`).join('')}</div>
+ <div class="checks" style="margin-top:10px">${chk(b+'confirmed',s.confirmed,'The employee supplied these answers personally (not a proxy preference)')}</div>
+ ${field('Note',txt(b+'note',s.note,'optional'))}
+</div>`;}).join('');}
+
+function renderReview(){const c=runChecks();const k=c.counts;const groups={};c.items.forEach(it=>{const g=it.pid?(personName(it.pid)+(it.date?' · '+it.date:'')):'Household';(groups[g]=groups[g]||[]).push(it);});
+ return `<div class="card">
+ <h2>Review, corrections and completion <span class="badge">Section H</span></h2>
+ <div><span class="stat"><b>${k.persons}</b>members</span><span class="stat"><b>${k.vehicles}</b>vehicles</span><span class="stat"><b>${k.personDays}</b>person-days recorded</span><span class="stat"><b>${k.personTrips}</b>person-trip records</span><span class="stat"><b>${k.driverRecords}</b>household-vehicle driver records</span><span class="stat"><b>${k.errors}</b>errors</span><span class="stat"><b>${k.warnings}</b>warnings</span></div>
+ <p class="small muted">Person-trip counts and vehicle movements differ: shared person trips and walking are counted per person, while a vehicle movement is recorded once per driver.</p>
+ ${c.items.length?'':'<div class="msg ok">No issues found by the automated checks. Automated flags still require interpretation; confirm the records with each member.</div>'}
+ ${Object.keys(groups).map(g=>'<h4>'+esc(g)+'</h4>'+groups[g].map(it=>'<div class="msg '+(it.level==='error'?'error':'warn')+'">'+(it.level==='error'?'<b>Check:</b> ':'<b>Confirm:</b> ')+esc(it.msg)+(it.pid?' <button class="small ghost noprint" data-action="goDay" data-arg="'+it.pid+'|'+(it.date||state.dates.weekday)+'">Open diary</button>':'')+'</div>').join('')).join('')}
+ <p class="small">Automated checks cover overlapping activities, time gaps, location discontinuity, implausible travel times, shared-trip agreement, vehicle conflicts, missing information and no-travel confirmation. Unusual does not automatically mean wrong. Do not silently impute uncertain behaviour or force guesses; use callback or network evidence where available.</p>
+ <p class="noprint"><button class="ghost" data-action="recheck">Run checks again</button></p>
+</div>
+<div class="card">
+ <h3 style="margin-top:0">Completion and local export</h3>
+ <div class="checks">${chk('state.meta.finalReview',state.meta.finalReview,'Final review: all known records have been checked with the members')}</div>
+ <p class="inline noprint" style="margin-top:10px"><button data-action="exportJSON">Export complete JSON</button><button data-action="exportCSV">Export diary CSV</button><button class="ghost" data-action="print">Print / save as PDF</button></p>
+ <div class="notice"><b>Local completion is not an institutional submission.</b> The prototype exports linked records with their quality flags to your computer. A production field-survey service would need separate secure hosting, household access control, contact management, geocoding and approved data-handling procedures; none of these is implemented or claimed here.</div>
+</div>`;}
+
+const QUESTIONNAIRE=[
+ ['A. Participation and reporting instructions',[['A1','Do you agree to participate?','Yes — continue / No — end response'],['A2','Explain the survey to participating adult household members.','Representative confirms they have done so'],['A3','Who completes the response?','Parent or household representative enters everyone’s information after consulting them; assists children'],['A4','Confirm known information with each member.','Do not guess missing details']]],
+ ['B. Household information',[['B1','Household ID','Automatically assigned'],['B2','Representative label','Optional role/label; a legal name is unnecessary for the demo'],['B3','Where is the household’s usual residence?','Saved place, address/landmark, city/locality; coordinates if known'],['B4','How many people usually live in this household?','Number including children; create that many person records'],['B5','How many vehicles are normally available for private household use?','Number; include available leased/employer vehicles; create vehicle records'],['B6','What is the household’s approximate total monthly income, in SAR?',INCOME.join(' / ')]]],
+ ['C. Each household member',[['C1','Person ID and member label','Assigned ID plus label such as Father, Mother, Child'],['C2','Age in completed years','Number; 0 for a child under one year'],['C3','Gender','Male / Female'],['C4','Highest education completed',EDU.join(' / ')],['C5','Nationality group','Optional Saudi / Non-Saudi'],['C6','Current employment and education status','Employed or self-employed; Student; both can apply; leave both unchecked if neither applies'],['C7','Driving-licence status','Holds valid licence / Does not hold valid licence / Not applicable'],['C8','Usual workplace','If employed: saved place'],['C9','Work schedule','If employed: fixed / flexible / shifts-variable / no usual schedule'],['C10','Usual work start and end','If applicable: 24-hour times'],['C11','Working from home','If employed: never / some workdays / all workdays / varies'],['C12','Workplace parking availability','Free available / paid available / no parking available / unknown'],['C13','Who normally pays workplace parking charges?','If paid: employee / employer / shared payment / unknown'],['C14','Typical total daily parking charge','If paid: SAR; leave unknown blank'],['C15','Usual school/college/university','If a student: saved place'],['C16','Usual education start and end','If applicable: 24-hour times'],['C17','Usual walking time from home to a usable transit stop',TRANSIT_WALK.join(' / ')],['C18','Mobility, access, escort, or other travel constraints','Optional short text']]],
+ ['D. Each vehicle',[['D1','Vehicle ID','Automatically assigned V01, V02, etc.'],['D2','Vehicle type',VTYPES.join(' / ')],['D3','How is the vehicle provided?',PROVISION.join(' / ')],['D4','Which members may drive it?','Select existing person IDs'],['D5','Usual availability restrictions/sharing arrangements','Short text, including relevant time conditions']]],
+ ['E. Assigned diary dates and activity records',[['E1','Assigned weekday and weekend dates','Same two dates for all members; assigned across the fieldwork calendar'],['E2','Member and diary day','Select person ID and assigned date'],['E3','Where was the person at 00:00?','Home / another location / travelling; identify location or continuing-trip record'],['E4','Main activity',ACTIVITIES.join('; ')],['E5','Activity location','Saved/new place'],['E6','Activity start and end','HH:MM; begin at 00:00 and finish the complete diary at 24:00'],['E7','Activity detail','Optional text; duration calculated from times'],['E8','Did the next activity occur at the same location?','Same location: next activity; changed location: record the trip'],['E9','Was this an ordinary day?','Yes / No — unusual circumstances / Unknown'],['E10','Explain unusual circumstances','Short text when applicable; retain the day with its flag'],['E11','No travel on this day?','Explicit confirmation; still record the activities'],['E12','Confirm review with the member','Representative confirms all known activities/trips included']]],
+ ['F. Each trip and its stages',[['F1','Trip origin','Previous location prefilled for confirmation'],['F2','Trip destination','Saved/new place'],['F3','Departure and arrival','HH:MM; travel duration calculated'],['F4','Modes used',MODES.join(' / ')+'; select all used'],['F5','Driver or passenger?','If car used'],['F6','Vehicle used','Household vehicle ID / other vehicle'],['F7','Household companions for the shared segment','Select person IDs'],['F8','Additional non-household companions','Number'],['F9','Public transport stages','Ordered walking, waiting/transfer, bus, rail/metro or other stages; line/route if known; start/end times'],['F10','Fare paid','Relevant paid modes: SAR; 0 if confirmed free; blank if unknown'],['F11','Parking paid','If applicable: SAR; 0 if confirmed free; blank if unknown'],['F12','Toll paid','If applicable: SAR; 0 if confirmed free; blank if unknown'],['F13','Payment/uncertainty note','Optional explanation']]],
+ ['G. Optional stated-preference supplement',[['G1','Eligibility','Relevant employed member with workplace travel; skip where not relevant'],['G2','Question','Which option would the employee choose for this workday considering schedule, household commitments and budget?'],['G3','Choices','Option A / Option B / Neither feasible — record the constraint'],['G4','Confirmation','Confirm the employee supplied the answer'],['G5','Cards','Card 1: Car 70 min, SAR 12 + SAR 10 parking = SAR 22 vs Transit + walk 100 min, SAR 8. Card 2: Car 70 min, SAR 12 + SAR 20 parking = SAR 32 vs Transit + walk 90 min, SAR 8.']]],
+ ['H. Review, corrections and completion',[['H1','Overlapping activities','Two records overlap; check their times.'],['H2','Time gaps','What was the person doing during the missing interval?'],['H3','Location discontinuity','The next location differs; was a trip missed?'],['H4','Shared-trip agreement','Confirm the companions shared this entire segment.'],['H5','Vehicle conflicts','The same car appears in separate overlapping driver trips.'],['H6','Missing or implausible information','Review with the member; use callback/network evidence where available.'],['H7','No-travel confirmation','Confirm the person stayed without trips; retain their activities.'],['H8','Final review','Confirm all known records have been checked with the members.']]]
+];
+function renderGuide(){return `<div class="card guide">
+ <div class="inline noprint" style="justify-content:space-between"><h2 style="margin:0">Questionnaire and methodology guide</h2><button class="ghost" data-action="print">Print / save as PDF</button></div>
+ <p class="small">Complete proposed questionnaire for the <b>Al Khobar Household Activity and Travel Survey</b> (a proposal, not completed fieldwork), followed by the survey-design rationale and presenter notes.</p>
+ <h3>Part 1 — Full questionnaire</h3>
+ ${QUESTIONNAIRE.map(sec=>'<h4>'+esc(sec[0])+'</h4><div class="tablewrap"><table><tr><th style="width:60px">ID</th><th>Question / field</th><th>Response / behaviour</th></tr>'+sec[1].map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>').join('')+'</table></div>').join('')}
+ <p class="small">Shared-trip reuse: copy common movement details to companions for review; copy only the relevant travel segment; do not copy the destination activity, assume personal fare payments or make a child a driver; record shared vehicle parking/toll payments once; link copies by shared-trip ID. Tours and chains are derived from the ordered linked records rather than entered a second time.</p>
+ <h3>Part 2 — Survey-design decisions and rationale</h3>
+ <details open><summary>Objective, study area and population</summary><ul><li>Objective: collect household, person, activity and travel data to support activity-based model development.</li><li>Study area: a clearly defined and verified Al Khobar study boundary; residents’ trips outside the boundary are recorded; non-resident through traffic needs supplementary sources.</li><li>Target population: residents of eligible private households inside the boundary. Coverage of institutional or collective accommodation is an explicit unresolved operational decision.</li><li>Reporting: a parent or household representative enters all members’ data after consulting them; employees give their own stated-preference answers.</li></ul></details>
+ <details open><summary>Sampling frame and sample size</summary><ul><li>Seek an authorized, current household/residential-unit frame including apartments and compounds; a building list needs a within-address selection stage. The availability of an appropriate Al Khobar frame has not been verified.</li><li>Chosen design: stratified random sampling with simple random selection within each geographic stratum; proportional allocation when frame totals support it; selection records preserved; no substitution of a cooperative neighbour for a refusal.</li><li>Initial benchmark: n₀ = 1.96² × 0.5 × 0.5 / 0.05² = 384.16 → 385 completed households (one household proportion, 95% confidence, ±5 percentage points). Not a guarantee of city-wide ABM adequacy; household members and repeated diary days are not independent household samples.</li><li>Invitations = ceil(385 / completion rate): 40% → 963; 60% → 642; 80% → 482 (hypothetical rates).</li></ul></details>
+ <details open><summary>Burden reduction and administration</summary><ul><li>Household representative; income bands with refusal option; saved places; conditional questions; save/resume; reused shared trips; children included with adult assistance.</li><li>Web-first guided questionnaire with telephone or face-to-face assistance; monitor response and completion by mode and group. Field versions need equivalent Arabic and English wording.</li><li>No continuous GPS in the core design; GPS is a separately consented future extension. The prototype has no live GPS, phone recruitment or secured invitations.</li></ul></details>
+ <details open><summary>Pilot, fieldwork, training and follow-up</summary><ul><li>Pilot round 1 → revise → round 2 with different households; test clarity, burden, location entry, skip logic, shared trips and diary completion. No numeric pilot size has been agreed.</li><li>Main campaign: eight weeks after piloting, preferably in an ordinary school-term period, with recruitment and assigned dates distributed across the period; each household records only two days; log holidays and unusual events.</li><li>Field process: invitation → consent → household profile → assigned dates → reminders → diaries → timely review/callback → disposition record.</li><li>Training: standard instructions, neutral assistance, activity/trip/stage distinctions, all-member coverage, shared travel, handling unknowns, consent and privacy, practice interviews and callbacks.</li></ul></details>
+ <details open><summary>Weighting, representativeness, consent and privacy</summary><ul><li>Weighting sequence: selection probability → non-response adjustment in suitable cells → calibration to verified controls. Illustration: 1,000 households in a stratum, 100 selected (base weight 10), 80 completed (adjusted weight 12.5). Apply appropriate day-type weights.</li><li>Compare achieved distributions with geographic, household-size, demographic and vehicle controls; review undercoverage and extreme weights.</li><li>Inform participants; separate contact data from analytical IDs in deployment; restrict detailed-location access; report aggregates; finalize retention and withdrawal procedures before fieldwork.</li></ul></details>
+ <h3>Part 3 — Prototype capabilities and limitations</h3>
+ <ul><li>Implemented: consent, household, person, vehicle, diary, SP, review/export and guide sections; conditional questions; two person-day selectors; editable records; ordered public-transport stages; shared-trip copies with vehicle-ID links; full fictional three-person/two-day example; local save/resume; JSON/CSV export; print; core consistency checks; presenter notes.</li><li>Not implemented or claimed: backend or institutional submission, continuous tracking, live geocoder, verified sampling frame, city-boundary validation, ActivitySim estimation or policy forecasts.</li></ul>
+ <h3>Part 4 — Presenter notes (live demonstration)</h3>
+ <ol><li>Open the file in a browser and click <b>Load family example</b>.</li><li>Show Household → People → Vehicles in natural order.</li><li>Open the two-day diary; select Father and the weekday.</li><li>Edit the 07:00–07:20 Home → School trip; point out the Child as companion and vehicle V01; cancel.</li><li>Select the Child to show the passenger copy and the different destination activity.</li><li>Show Review &amp; export and this guide.</li></ol>
+</div>`;}
+
+function render(){renderTabs();const m=document.getElementById('main');const fn={welcome:renderWelcome,household:renderHousehold,people:renderPeople,vehicles:renderVehicles,diary:renderDiary,sp:renderSP,review:renderReview,guide:renderGuide}[ui.tab]||renderWelcome;m.innerHTML=fn();document.getElementById('notes').classList.toggle('open',!!ui.notes);}
+
+/* ---------- structural sync ---------- */
+function syncCounts(){const n=parseInt(state.household.size,10);if(n>0)while(state.persons.length<n)addPerson();const v=parseInt(state.household.vehicles,10);if(v>0)while(state.vehicles.length<v)addVehicle();}
+function addPerson(){state.persons.push({id:nextId(state.persons,'P'),label:'',age:'',gender:'',education:'',nationality:'',employed:false,student:false,licence:'',workplace:'',workSchedule:'',workStart:'',workEnd:'',wfh:'',parking:'',parkingPayer:'',parkingCharge:'',school:'',eduStart:'',eduEnd:'',transitWalk:'',constraints:''});}
+function addVehicle(){state.vehicles.push({id:nextId(state.vehicles,'V'),type:'',provision:'',drivers:[],restrictions:''});}
+
+/* ---------- record editing ---------- */
+function lastState(day){const recs=sortedRecords(day);if(!recs.length)return {end:'00:00',loc:day.startLoc||''};const r=recs[recs.length-1];return {end:r.end,loc:r.type==='trip'?r.dest:r.place};}
+function startDraft(type){const day=getDay(ui.pid,ui.date,true);const ls=lastState(day);ui.copyMsg='';
+ if(type==='activity')draft={isNew:true,id:nextRecordId(),type:'activity',activity:'',place:ls.loc,start:ls.end,end:'',detail:''};
+ else draft={isNew:true,id:nextRecordId(),type:'trip',origin:ls.loc,dest:'',start:ls.end,end:'',modes:[],role:'',vehicle:'',companions:[],nonHH:0,stages:[],fare:'',parking:'',toll:'',note:'',sharedId:''};}
+function validateDraft(){const d=draft;const st=toMin(d.start),en=toMin(d.end);if(st==null||en==null)return 'Enter times as HH:MM (00:00 to 24:00).';if(en<=st)return 'The end time must be after the start time.';
+ if(d.type==='activity'){if(!d.activity)return 'Choose the main activity.';if(!d.place)return 'Choose the activity location.';}
+ else{if(!d.origin||!d.dest)return 'Choose the origin and destination.';if(!(d.modes||[]).length)return 'Select at least one mode.';if((d.modes||[]).includes('Car')&&d.role==='Driver'&&!canDrive(person(ui.pid)))return 'This member cannot be recorded as a driver (under 18 or no valid licence).';if(d.role==='Driver'&&!d.vehicle)return 'Select the vehicle used.';}
+ return '';}
+function saveDraft(){const err=validateDraft();if(err){draft.err=err;render();return;}const day=getDay(ui.pid,ui.date,true);const rec=Object.assign({},draft);delete rec.isNew;delete rec.err;
+ ['nonHH','fare','parking','toll'].forEach(k=>{if(rec[k]===''||rec[k]==null)rec[k]=k==='nonHH'?0:'';else rec[k]=Number(rec[k]);});
+ const i=day.records.findIndex(r=>r.id===rec.id);if(i>=0)day.records[i]=rec;else day.records.push(rec);draft=null;save();render();}
+
+/* ---------- events ---------- */
+function valueOf(el){if(el.type==='checkbox')return el.checked;if(el.type==='number')return el.value===''?'':Number(el.value);return el.value;}
+document.addEventListener('change',e=>{const el=e.target;
+ if(el.dataset.list){const [root,path]=resolve(el.dataset.list);let arr=getPath(root,path);if(!Array.isArray(arr)){arr=[];setPath(root,path,arr);}const it=el.dataset.item;const i=arr.indexOf(it);if(el.checked&&i<0)arr.push(it);if(!el.checked&&i>=0)arr.splice(i,1);
+  if(el.dataset.list==='draft.modes'&&draft){if(!draft.modes.includes('Car')){draft.role='';draft.vehicle='';}if(draft.modes.includes('Public transport')&&!(draft.stages||[]).length)draft.stages=[{kind:'Walking',line:'',start:'',end:''}];}
+  save();render();return;}
+ const p=el.dataset.path;if(!p)return;const [root,path]=resolve(p);const oldVal=getPath(root,path);setPath(root,path,valueOf(el));
+ if(p==='state.household.size'||p==='state.household.vehicles')syncCounts();
+ if(p==='ui.pid'||p==='ui.date'){draft=null;ui.copyMsg='';}
+ if(p.startsWith('state.dates.')&&oldVal&&oldVal!==valueOf(el)){const nv=valueOf(el);Object.keys(state.diary).forEach(k=>{const [pid,d]=k.split('|');if(d===oldVal){state.diary[pid+'|'+nv]=state.diary[k];delete state.diary[k];}});if(ui.date===oldVal)ui.date=nv;}
+ save();render();});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,arg=b.dataset.arg;
+ switch(a){
+  case 'tab':ui.tab=arg;draft=null;ui.copyMsg='';window.scrollTo(0,0);break;
+  case 'loadExample':if(state.persons.length&&!state.meta.example&&!confirm('Replace the current entries with the fictional family example?'))return;state=exampleState();save();ui.tab='household';ui.pid='P01';ui.date=state.dates.weekday;draft=null;break;
+  case 'clearData':if(!confirm('Clear all locally stored survey data in this browser?'))return;state=freshState();try{localStorage.removeItem(KEY);}catch(x){}ui.tab='welcome';ui.pid='';ui.date='';draft=null;setStatus('Local data cleared');break;
+  case 'toggleNotes':ui.notes=!ui.notes;break;
+  case 'addPlace':state.places.push({id:nextId(state.places,'L'),label:'',description:'',locality:'',lat:'',lon:''});save();break;
+  case 'delPlace':if(!confirm('Remove this saved place?'))return;state.places.splice(+arg,1);save();break;
+  case 'addPerson':addPerson();save();break;
+  case 'delPerson':if(!confirm('Remove this member and their diary records?'))return;{const id=state.persons[+arg].id;state.persons.splice(+arg,1);Object.keys(state.diary).forEach(k=>{if(k.startsWith(id+'|'))delete state.diary[k];});delete state.sp[id];}save();break;
+  case 'addVehicle':addVehicle();save();break;
+  case 'delVehicle':if(!confirm('Remove this vehicle?'))return;state.vehicles.splice(+arg,1);save();break;
+  case 'addActivity':startDraft('activity');break;
+  case 'addTrip':startDraft('trip');break;
+  case 'editRec':{const day=getDay(ui.pid,ui.date,true);const r=day.records.find(x=>x.id===arg);if(r){draft=JSON.parse(JSON.stringify(r));draft.isNew=false;ui.copyMsg='';}}break;
+  case 'delRec':{if(!confirm('Delete this record?'))return;const day=getDay(ui.pid,ui.date,true);day.records=day.records.filter(x=>x.id!==arg);save();}break;
+  case 'copyTrip':ui.copyMsg=copyTripToCompanions(ui.pid,ui.date,arg);break;
+  case 'saveRec':saveDraft();return;
+  case 'cancelRec':draft=null;ui.newPlace='';break;
+  case 'addStage':if(draft){(draft.stages=draft.stages||[]).push({kind:'',line:'',start:'',end:''});}break;
+  case 'delStage':if(draft)draft.stages.splice(+arg,1);break;
+  case 'openNewPlace':ui.newPlace=arg;ui.newPlaceDraft={label:'',description:'',locality:'',lat:'',lon:''};break;
+  case 'closeNewPlace':ui.newPlace='';break;
+  case 'saveNewPlace':{const n=ui.newPlaceDraft||{};if(!n.label){alert('Enter a label for the place.');return;}const np={id:nextId(state.places,'L'),label:n.label,description:n.description||'',locality:n.locality||'',lat:n.lat||'',lon:n.lon||''};state.places.push(np);const [root,path]=resolve(arg);setPath(root,path,np.id);ui.newPlace='';save();}break;
+  case 'goDay':{const [pid,date]=arg.split('|');ui.pid=pid;ui.date=date;ui.tab='diary';draft=null;}break;
+  case 'recheck':break;
+  case 'exportJSON':download('Al_Khobar_survey_'+state.household.id+'.json',exportJSON(),'application/json');return;
+  case 'exportCSV':download('Al_Khobar_diary_'+state.household.id+'.csv',exportCSV(),'text/csv');return;
+  case 'print':window.print();return;
+  default:return;
+ }
+ render();
+ if(a==='addActivity'||a==='addTrip'||a==='editRec'){const f=document.getElementById('recform');if(f)f.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+
+/* ---------- init ---------- */
+if(!load())setStatus('New response (nothing saved yet)');
+render();
+window.Survey={get state(){return state;},set state(s){state=s;save();render();},runChecks,exportJSON,exportCSV,copyTripToCompanions,exampleState,render,ui,get draft(){return draft;}};
+})();
+</script>
+</body>
+</html>
