@@ -17,3 +17,5 @@ Deliverables for Group Presentation #2 (2 November 2026).
 ## Prototype limitations
 
 Classroom prototype only: no backend or submission, no GPS, no geocoder, no verified sampling frame. Data stays in the browser (local storage); export JSON/CSV or clear it from the Review tab.
+
+| `CE571_Group10_Slide_by_Slide_Guide_AR.docx` | Arabic study guide: every slide with its explanation, plus a glossary. |
