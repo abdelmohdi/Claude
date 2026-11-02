@@ -4,7 +4,7 @@ Deliverables for Group Presentation #2 (2 November 2026).
 
 | File | Purpose |
 |---|---|
-| `CE571_Group10_Activity_Based_Travel_Demand_Modeling.pptx` | Editable deck: 35 main slides, 2 reference slides, 16 appendix slides (complete questionnaire, methodology rationale, example diaries). Every slide has speaker notes. |
+| `CE571_Group10_Activity_Based_Travel_Demand_Modeling.pptx` | Editable deck: 36 main slides (incl. closing slide), 2 reference slides, 16 appendix slides (complete questionnaire, methodology rationale, example diaries). Every slide has speaker notes. |
 | `Al_Khobar_Household_Survey.html` | Companion classroom prototype of the proposed Al Khobar household activity and travel survey. Single offline file; open it in a browser and click **Load family example**. |
 
 ## Before presenting
